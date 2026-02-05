@@ -1,16 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Clock, AlertTriangle, Check } from 'lucide-react'
+import { AlertTriangle, Check } from 'lucide-react'
 import axios from 'axios'
-import { submitQuiz, LockdownEvent, QuizQuestion } from '../api/client'
-
-// Timer warning thresholds in seconds
-const FIVE_MINUTES_IN_SECONDS = 300
-const ONE_MINUTE_IN_SECONDS = 60
-const WARNING_DISPLAY_DURATION_MS = 5000
-const AUTOSAVE_DEBOUNCE_MS = 1000
+import { submitQuiz, LockdownEvent, QuizQuestion as QuizQuestionType } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
 import { useLockdown } from '../hooks/useLockdown'
+import { QuizTimer } from '../components/QuizTimer'
+import { QuizQuestion } from '../components/QuizQuestion'
+
+const AUTOSAVE_DEBOUNCE_MS = 1000
 
 export function LockdownQuiz() {
   const navigate = useNavigate()
@@ -19,49 +17,28 @@ export function LockdownQuiz() {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [outlineResponses, setOutlineResponses] = useState<Record<string, string>>({})
   const [lockdownEvents, setLockdownEvents] = useState<LockdownEvent[]>([])
-  const [timeRemaining, setTimeRemaining] = useState<number>(0)
   const [warning, setWarning] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Initialize timer
+  // Redirect if no session
   useEffect(() => {
     if (!session.startedAt || !session.timeLimitMinutes) {
       navigate('/')
-      return
     }
+  }, [session.startedAt, session.timeLimitMinutes, navigate])
 
-    const startTime = new Date(session.startedAt).getTime()
-    const endTime = startTime + session.timeLimitMinutes * 60 * 1000
+  const handleTimeUp = useCallback(() => {
+    handleSubmit(true)
+  }, [])
 
-    const updateTimer = () => {
-      const now = Date.now()
-      const remaining = Math.max(0, Math.floor((endTime - now) / 1000))
-      setTimeRemaining(remaining)
-
-      // Warning at 5 minutes
-      if (remaining === FIVE_MINUTES_IN_SECONDS) {
-        setWarning('5 minutes remaining!')
-        setTimeout(() => setWarning(null), WARNING_DISPLAY_DURATION_MS)
-      }
-
-      // Warning at 1 minute
-      if (remaining === ONE_MINUTE_IN_SECONDS) {
-        setWarning('1 minute remaining!')
-        setTimeout(() => setWarning(null), WARNING_DISPLAY_DURATION_MS)
-      }
-
-      // Auto-submit when time runs out
-      if (remaining === 0) {
-        handleSubmit(true)
-      }
+  const handleTimerWarning = useCallback((message: string) => {
+    if (message) {
+      setWarning(message)
+    } else {
+      setWarning(null)
     }
-
-    updateTimer()
-    const interval = setInterval(updateTimer, 1000)
-
-    return () => clearInterval(interval)
-  }, [session.startedAt, session.timeLimitMinutes])
+  }, [])
 
   // Lockdown
   const handleLockdownEvent = useCallback((event: LockdownEvent) => {
@@ -148,17 +125,15 @@ export function LockdownQuiz() {
     }
   }
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
+  const handleAnswerChange = useCallback((questionId: string, value: string) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }))
+  }, [])
 
-  if (!session.quizQuestions || !session.submissionId) {
+  if (!session.quizQuestions || !session.submissionId || !session.startedAt || !session.timeLimitMinutes) {
     return null
   }
 
-  const questions = session.quizQuestions as QuizQuestion[]
+  const questions = session.quizQuestions as QuizQuestionType[]
   const outlineFields = session.outlineFields || []
   const totalItems = questions.length + outlineFields.length
   const answeredItems = Object.keys(answers).length + Object.keys(outlineResponses).length
@@ -169,18 +144,12 @@ export function LockdownQuiz() {
       <div className="fixed top-0 left-0 right-0 bg-deep-sea border-b border-white/10 z-50">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${
-                timeRemaining < 60
-                  ? 'bg-red-500/20 text-red-400'
-                  : timeRemaining < 300
-                  ? 'bg-yellow-500/20 text-yellow-400'
-                  : 'bg-ice/20 text-ice'
-              }`}
-            >
-              <Clock className="w-4 h-4" />
-              <span className="font-mono font-bold">{formatTime(timeRemaining)}</span>
-            </div>
+            <QuizTimer
+              startedAt={session.startedAt}
+              timeLimitMinutes={session.timeLimitMinutes}
+              onTimeUp={handleTimeUp}
+              onWarning={handleTimerWarning}
+            />
             <span className="text-sm text-gray-400">
               {answeredItems} / {totalItems} answered
             </span>
@@ -218,68 +187,13 @@ export function LockdownQuiz() {
 
           {/* Quiz Questions */}
           {questions.map((q, index) => (
-            <div key={q.id} className="glass rounded-xl p-6">
-              <div className="flex items-start gap-4 mb-4">
-                <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-ice/20 text-ice rounded-full font-semibold text-sm">
-                  {index + 1}
-                </span>
-                <div className="flex-1">
-                  <span className="text-xs text-gray-400 uppercase mb-2 block">
-                    {q.type === 'mc' ? 'Multiple Choice' : 'Short Answer'}
-                  </span>
-                  <p className="text-white text-lg">{q.question}</p>
-                </div>
-                {answers[q.id] && (
-                  <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
-                )}
-              </div>
-
-              {q.type === 'mc' && q.options ? (
-                <div className="space-y-2 ml-12">
-                  {q.options.map((opt) => (
-                    <label
-                      key={opt.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                        answers[q.id] === opt.id
-                          ? 'bg-ice/20 border border-ice/50'
-                          : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name={q.id}
-                        value={opt.id}
-                        checked={answers[q.id] === opt.id}
-                        onChange={() => setAnswers({ ...answers, [q.id]: opt.id })}
-                        className="sr-only"
-                      />
-                      <span
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                          answers[q.id] === opt.id
-                            ? 'border-ice bg-ice'
-                            : 'border-gray-500'
-                        }`}
-                      >
-                        {answers[q.id] === opt.id && (
-                          <Check className="w-4 h-4 text-deep-sea" />
-                        )}
-                      </span>
-                      <span className="text-gray-300">{opt.text}</span>
-                    </label>
-                  ))}
-                </div>
-              ) : (
-                <div className="ml-12">
-                  <textarea
-                    value={answers[q.id] || ''}
-                    onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
-                    placeholder="Type your answer..."
-                    rows={3}
-                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-ice focus:ring-1 focus:ring-ice focus:outline-none transition-colors resize-none"
-                  />
-                </div>
-              )}
-            </div>
+            <QuizQuestion
+              key={q.id}
+              question={q}
+              index={index}
+              answer={answers[q.id]}
+              onAnswerChange={handleAnswerChange}
+            />
           ))}
 
           {/* Outline Fields */}
