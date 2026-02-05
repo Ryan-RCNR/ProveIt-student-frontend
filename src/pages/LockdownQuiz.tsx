@@ -3,6 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { Clock, AlertTriangle, Check } from 'lucide-react'
 import axios from 'axios'
 import { submitQuiz, LockdownEvent, QuizQuestion } from '../api/client'
+
+// Timer warning thresholds in seconds
+const FIVE_MINUTES_IN_SECONDS = 300
+const ONE_MINUTE_IN_SECONDS = 60
+const WARNING_DISPLAY_DURATION_MS = 5000
 import { useSession } from '../hooks/useSessionStorage'
 import { useLockdown } from '../hooks/useLockdown'
 
@@ -34,15 +39,15 @@ export function LockdownQuiz() {
       setTimeRemaining(remaining)
 
       // Warning at 5 minutes
-      if (remaining === 300) {
+      if (remaining === FIVE_MINUTES_IN_SECONDS) {
         setWarning('5 minutes remaining!')
-        setTimeout(() => setWarning(null), 5000)
+        setTimeout(() => setWarning(null), WARNING_DISPLAY_DURATION_MS)
       }
 
       // Warning at 1 minute
-      if (remaining === 60) {
+      if (remaining === ONE_MINUTE_IN_SECONDS) {
         setWarning('1 minute remaining!')
-        setTimeout(() => setWarning(null), 5000)
+        setTimeout(() => setWarning(null), WARNING_DISPLAY_DURATION_MS)
       }
 
       // Auto-submit when time runs out
