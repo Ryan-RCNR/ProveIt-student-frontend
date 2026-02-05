@@ -135,8 +135,10 @@ export function LockdownQuiz() {
 
   const questions = session.quizQuestions as QuizQuestionType[]
   const outlineFields = session.outlineFields || []
-  const totalItems = questions.length + outlineFields.length
-  const answeredItems = Object.keys(answers).length + Object.keys(outlineResponses).length
+  const totalQuestions = questions.length
+  const totalOutlineFields = outlineFields.length
+  const totalItemsToAnswer = totalQuestions + totalOutlineFields
+  const answeredCount = Object.keys(answers).length + Object.keys(outlineResponses).length
 
   return (
     <div className="min-h-screen bg-midnight">
@@ -151,7 +153,7 @@ export function LockdownQuiz() {
               onWarning={handleTimerWarning}
             />
             <span className="text-sm text-gray-400">
-              {answeredItems} / {totalItems} answered
+              {answeredCount} / {totalItemsToAnswer} answered
             </span>
           </div>
 
