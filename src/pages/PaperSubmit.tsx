@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Upload, FileText, ArrowRight, X } from 'lucide-react'
+import axios from 'axios'
 import { submitPaper, submitPaperFile } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
 
@@ -82,8 +83,12 @@ export function PaperSubmit() {
       })
 
       navigate('/quiz')
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to submit paper. Please try again.')
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.detail || 'Failed to submit paper. Please try again.')
+      } else {
+        setError('An unexpected error occurred. Please try again.')
+      }
     } finally {
       setLoading(false)
     }

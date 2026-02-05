@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Clock, AlertTriangle, Check } from 'lucide-react'
+import axios from 'axios'
 import { submitQuiz, LockdownEvent, QuizQuestion } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
 import { useLockdown } from '../hooks/useLockdown'
@@ -128,8 +129,12 @@ export function LockdownQuiz() {
       sessionStorage.removeItem('proveit_autosave')
 
       navigate('/complete')
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to submit. Please try again.')
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.detail || 'Failed to submit. Please try again.')
+      } else {
+        setError('An unexpected error occurred. Please try again.')
+      }
       setLoading(false)
     }
   }
