@@ -95,7 +95,7 @@ export function LockdownQuiz() {
         if (data.answers) setAnswers(data.answers)
         if (data.outlineResponses) setOutlineResponses(data.outlineResponses)
       } catch (e) {
-        // Ignore parse errors
+        console.warn('Failed to parse autosaved data, starting fresh:', e)
       }
     }
   }, [])
