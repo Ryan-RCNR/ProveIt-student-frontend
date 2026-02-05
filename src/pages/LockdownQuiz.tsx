@@ -8,6 +8,7 @@ import { submitQuiz, LockdownEvent, QuizQuestion } from '../api/client'
 const FIVE_MINUTES_IN_SECONDS = 300
 const ONE_MINUTE_IN_SECONDS = 60
 const WARNING_DISPLAY_DURATION_MS = 5000
+const AUTOSAVE_DEBOUNCE_MS = 1000
 import { useSession } from '../hooks/useSessionStorage'
 import { useLockdown } from '../hooks/useLockdown'
 
@@ -82,13 +83,16 @@ export function LockdownQuiz() {
     enabled: true,
   })
 
-  // Auto-save to session storage
+  // Auto-save to session storage (debounced)
   useEffect(() => {
-    const saveData = {
-      answers,
-      outlineResponses,
-    }
-    sessionStorage.setItem('proveit_autosave', JSON.stringify(saveData))
+    const timeout = setTimeout(() => {
+      const saveData = {
+        answers,
+        outlineResponses,
+      }
+      sessionStorage.setItem('proveit_autosave', JSON.stringify(saveData))
+    }, AUTOSAVE_DEBOUNCE_MS)
+    return () => clearTimeout(timeout)
   }, [answers, outlineResponses])
 
   // Load auto-saved data
