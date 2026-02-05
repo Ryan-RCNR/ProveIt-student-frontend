@@ -50,15 +50,22 @@ export function useLockdown({ onEvent, enabled }: UseLockdownOptions) {
 
     // Keyboard shortcuts prevention
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Prevent common shortcuts
+      // Prevent Print Screen
+      if (e.key === 'PrintScreen') {
+        e.preventDefault()
+        recordEvent('copy_attempt')
+        return
+      }
+
+      // Prevent common shortcuts (c, v, a, f, p, l for address bar)
       if (
         (e.ctrlKey || e.metaKey) &&
-        ['c', 'v', 'a', 'f', 'p'].includes(e.key.toLowerCase())
+        ['c', 'v', 'a', 'f', 'p', 'l'].includes(e.key.toLowerCase())
       ) {
-        // Allow in input/textarea
+        // Allow in input/textarea for certain keys
         if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-          // Only allow in text inputs
-          if (e.key.toLowerCase() !== 'c' && e.key.toLowerCase() !== 'v') {
+          // Only allow 'a' (select all) in text inputs
+          if (e.key.toLowerCase() === 'a') {
             return
           }
         }
@@ -73,8 +80,16 @@ export function useLockdown({ onEvent, enabled }: UseLockdownOptions) {
       e.preventDefault()
     }
 
+    // Fullscreen exit detection
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        recordEvent('fullscreen_exit')
+      }
+    }
+
     document.addEventListener('visibilitychange', handleVisibilityChange)
     window.addEventListener('blur', handleBlur)
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
     document.addEventListener('copy', handleCopy)
     document.addEventListener('paste', handlePaste)
     document.addEventListener('keydown', handleKeyDown)
@@ -86,6 +101,7 @@ export function useLockdown({ onEvent, enabled }: UseLockdownOptions) {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('blur', handleBlur)
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
       document.removeEventListener('copy', handleCopy)
       document.removeEventListener('paste', handlePaste)
       document.removeEventListener('keydown', handleKeyDown)
