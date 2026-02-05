@@ -25,12 +25,12 @@ export function Confirmation() {
           </h1>
 
           <p className="text-gray-400 mb-6">
-            Thank you, {session.studentName}. Your paper and quiz answers have been recorded.
+            Thank you, {session.studentName || 'Student'}. Your paper and quiz answers have been recorded.
           </p>
 
           <div className="p-4 bg-white/5 rounded-lg mb-6">
             <p className="text-sm text-gray-400 mb-1">Assignment</p>
-            <p className="text-white font-medium">{session.assignmentName}</p>
+            <p className="text-white font-medium">{session.assignmentName || 'Assignment'}</p>
           </div>
 
           <p className="text-gray-500 text-sm">
