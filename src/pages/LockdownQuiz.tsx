@@ -71,7 +71,7 @@ export function LockdownQuiz() {
     setTimeout(() => setWarning(null), 3000)
   }, [])
 
-  const { getTotalViolations } = useLockdown({
+  useLockdown({
     onEvent: handleLockdownEvent,
     enabled: true,
   })
