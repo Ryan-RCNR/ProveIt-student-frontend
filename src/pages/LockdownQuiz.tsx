@@ -7,7 +7,7 @@ import { useLockdown } from '../hooks/useLockdown'
 
 export function LockdownQuiz() {
   const navigate = useNavigate()
-  const { session, setSession, clearSession } = useSession()
+  const { session } = useSession()
 
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [outlineResponses, setOutlineResponses] = useState<Record<string, string>>({})
