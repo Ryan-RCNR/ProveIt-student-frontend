@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { QuizQuestion } from '../api/client'
 
 export function useSessionStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
   const [storedValue, setStoredValue] = useState<T>(() => {
@@ -33,7 +34,7 @@ export interface SessionData {
   questionCount?: number
   studentName?: string
   submissionId?: string
-  quizQuestions?: any[]
+  quizQuestions?: QuizQuestion[]
   startedAt?: string
 }
 
