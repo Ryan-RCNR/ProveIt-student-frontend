@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --deep-sea: #001628;
+  --midnight: #000C17;
+  --ice: #99D9D9;
+  --ice-muted: #68A2B9;
+}
+
+body {
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--midnight);
+  color: white;
+  min-height: 100vh;
+}
+
+.glass {
+  background: rgba(153, 217, 217, 0.08);
+  border: 1px solid rgba(153, 217, 217, 0.15);
+  backdrop-filter: blur(10px);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--ice);
+  outline-offset: 2px;
+}
+
+/* Lockdown mode styles */
+.lockdown-mode {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.lockdown-mode * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Allow text selection in text inputs */
+.lockdown-mode input[type="text"],
+.lockdown-mode textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--deep-sea);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ice-muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ice);
+}
