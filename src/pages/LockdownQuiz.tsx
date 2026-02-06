@@ -28,16 +28,49 @@ export function LockdownQuiz() {
     }
   }, [session.startedAt, session.timeLimitMinutes, navigate])
 
+  const handleSubmit = useCallback(async (forced: boolean = false) => {
+    if (loading) return
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const answersList = Object.entries(answers).map(([question_id, answer]) => ({
+        question_id,
+        answer,
+      }))
+
+      const outlineList = Object.entries(outlineResponses).map(([field_label, response]) => ({
+        field_label,
+        response,
+      }))
+
+      await submitQuiz(
+        session.submissionId!,
+        answersList,
+        outlineList,
+        lockdownEvents,
+        forced
+      )
+
+      sessionStorage.removeItem('proveit_autosave')
+      navigate('/complete')
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.detail || 'Failed to submit. Please try again.')
+      } else {
+        setError('An unexpected error occurred. Please try again.')
+      }
+      setLoading(false)
+    }
+  }, [answers, outlineResponses, session.submissionId, lockdownEvents, loading, navigate])
+
   const handleTimeUp = useCallback(() => {
     handleSubmit(true)
-  }, [])
+  }, [handleSubmit])
 
   const handleTimerWarning = useCallback((message: string) => {
-    if (message) {
-      setWarning(message)
-    } else {
-      setWarning(null)
-    }
+    setWarning(message || null)
   }, [])
 
   // Lockdown
@@ -85,45 +118,6 @@ export function LockdownQuiz() {
       }
     }
   }, [])
-
-  const handleSubmit = async (forced: boolean = false) => {
-    if (loading) return
-
-    setLoading(true)
-    setError(null)
-
-    try {
-      const answersList = Object.entries(answers).map(([question_id, answer]) => ({
-        question_id,
-        answer,
-      }))
-
-      const outlineList = Object.entries(outlineResponses).map(([field_label, response]) => ({
-        field_label,
-        response,
-      }))
-
-      await submitQuiz(
-        session.submissionId!,
-        answersList,
-        outlineList,
-        lockdownEvents,
-        forced
-      )
-
-      // Clear auto-save
-      sessionStorage.removeItem('proveit_autosave')
-
-      navigate('/complete')
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.detail || 'Failed to submit. Please try again.')
-      } else {
-        setError('An unexpected error occurred. Please try again.')
-      }
-      setLoading(false)
-    }
-  }
 
   const handleAnswerChange = useCallback((questionId: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }))
