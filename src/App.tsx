@@ -6,7 +6,7 @@ import { PaperSubmit } from './pages/PaperSubmit'
 import { LockdownQuiz } from './pages/LockdownQuiz'
 import { Confirmation } from './pages/Confirmation'
 
-function App(): JSX.Element {
+function App() {
   return (
     <ErrorBoundary>
       <Routes>
