@@ -9,6 +9,47 @@ export const api = axios.create({
   },
 })
 
+// Student session token management
+let studentToken: string | null = null
+
+export function setStudentToken(token: string | null) {
+  studentToken = token
+  if (token) {
+    sessionStorage.setItem('proveit_student_token', token)
+  } else {
+    sessionStorage.removeItem('proveit_student_token')
+  }
+}
+
+export function getStudentToken(): string | null {
+  if (!studentToken) {
+    studentToken = sessionStorage.getItem('proveit_student_token')
+  }
+  return studentToken
+}
+
+// Request interceptor to attach student token
+api.interceptors.request.use((config) => {
+  const token = getStudentToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// Response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear invalid token and let the app handle re-authentication
+      setStudentToken(null)
+      console.warn('Student session expired or invalid')
+    }
+    return Promise.reject(error)
+  }
+)
+
 // Types
 export interface OutlineField {
   label: string
