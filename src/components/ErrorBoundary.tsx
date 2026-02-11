@@ -24,14 +24,14 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-midnight flex items-center justify-center p-4">
-          <div className="glass rounded-xl p-8 max-w-md text-center">
-            <h1 className="text-2xl font-display text-ice mb-4">Something went wrong</h1>
-            <p className="text-gray-400 mb-6">
+          <div className="glass-card rounded-xl p-8 max-w-md text-center">
+            <h1 className="text-2xl font-display text-brand mb-4">Something went wrong</h1>
+            <p className="text-brand/50 mb-6">
               Please refresh the page and try again.
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-3 bg-ice text-deep-sea font-semibold rounded-lg hover:bg-ice-muted transition-colors"
+              className="px-6 py-3 btn-ice rounded-lg"
             >
               Refresh Page
             </button>

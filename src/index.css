@@ -1,29 +1,44 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  --deep-sea: #001628;
-  --midnight: #000C17;
-  --ice: #99D9D9;
-  --ice-muted: #68A2B9;
+@theme {
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+
+  --color-brand: #99d9d9;
+  --color-brand-dark: #68A2B9;
+  --color-brand-glow: rgba(153, 217, 217, 0.15);
+  --color-surface: #001628;
+  --color-surface-light: #002040;
+  --color-surface-lighter: #003058;
+  --color-midnight: #000C17;
 }
 
 body {
-  font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--midnight);
+  font-family: var(--font-sans);
+  background-color: var(--color-midnight);
   color: white;
   min-height: 100vh;
 }
 
-.glass {
-  background: rgba(153, 217, 217, 0.08);
-  border: 1px solid rgba(153, 217, 217, 0.15);
-  backdrop-filter: blur(10px);
+@layer utilities {
+  .glass-card {
+    background: rgba(0, 22, 40, 0.6);
+    border: 1px solid rgba(153, 217, 217, 0.15);
+    backdrop-filter: blur(12px);
+  }
+
+  .btn-ice {
+    background: linear-gradient(135deg, #99d9d9 0%, #68A2B9 100%);
+    color: #000C17;
+    font-weight: 600;
+  }
+  .btn-ice:hover {
+    opacity: 0.9;
+  }
 }
 
 *:focus-visible {
-  outline: 2px solid var(--ice);
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
 }
 
@@ -51,14 +66,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--deep-sea);
+  background: var(--color-surface);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--ice-muted);
+  background: var(--color-brand-dark);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ice);
+  background: var(--color-brand);
 }

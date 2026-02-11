@@ -53,13 +53,13 @@ export function Entry() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <FileCheck className="w-16 h-16 text-ice mx-auto mb-4" />
-          <h1 className="text-3xl font-display text-white mb-2">ProveIt</h1>
-          <p className="text-gray-400">Paper Verification</p>
+          <FileCheck className="w-16 h-16 text-brand mx-auto mb-4" />
+          <h1 className="text-3xl font-display text-brand mb-2">ProveIt</h1>
+          <p className="text-brand/50">Paper Verification</p>
         </div>
 
         {/* Form */}
-        <div className="glass rounded-xl p-8">
+        <div className="glass-card rounded-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <div className="p-4 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-sm">
@@ -68,7 +68,7 @@ export function Entry() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-brand/70 mb-2">
                 Your Name
               </label>
               <input
@@ -76,13 +76,13 @@ export function Entry() {
                 value={studentName}
                 onChange={(e) => setStudentName(e.target.value)}
                 placeholder="Enter your full name"
-                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-ice focus:ring-1 focus:ring-ice focus:outline-none transition-colors"
+                className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-white placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-brand/70 mb-2">
                 Access Code
               </label>
               <input
@@ -90,10 +90,10 @@ export function Entry() {
                 value={accessCode}
                 onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
                 placeholder="e.g., ABCD-1234"
-                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-ice focus:ring-1 focus:ring-ice focus:outline-none transition-colors font-mono text-lg tracking-wider text-center"
+                className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-white placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors font-mono text-lg tracking-wider text-center"
                 required
               />
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-brand/30">
                 Enter the code provided by your teacher
               </p>
             </div>
@@ -101,10 +101,10 @@ export function Entry() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-ice text-deep-sea font-semibold rounded-lg hover:bg-ice-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 btn-ice rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-deep-sea"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-midnight"></div>
               ) : (
                 <>
                   Continue
@@ -115,7 +115,7 @@ export function Entry() {
           </form>
         </div>
 
-        <p className="text-center text-xs text-gray-500 mt-6">
+        <p className="text-center text-xs text-brand/30 mt-6">
           RCNR Teacher Toolbox
         </p>
       </div>

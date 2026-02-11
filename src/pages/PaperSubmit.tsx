@@ -110,28 +110,28 @@ export function PaperSubmit() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-display text-white mb-2">Submit Your Paper</h1>
-          <p className="text-gray-400">{session.assignmentName}</p>
+          <h1 className="text-2xl font-display text-brand mb-2">Submit Your Paper</h1>
+          <p className="text-brand/50">{session.assignmentName}</p>
         </div>
 
         {/* Mode Toggle */}
         <div className="flex gap-2 mb-6">
           <button
             onClick={() => setMode('paste')}
-            className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
+            className={`flex-1 py-3 rounded-xl font-medium transition-colors ${
               mode === 'paste'
-                ? 'bg-ice text-deep-sea'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                ? 'btn-ice'
+                : 'bg-surface-light text-brand/50 hover:bg-surface-lighter'
             }`}
           >
             Paste Text
           </button>
           <button
             onClick={() => setMode('upload')}
-            className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
+            className={`flex-1 py-3 rounded-xl font-medium transition-colors ${
               mode === 'upload'
-                ? 'bg-ice text-deep-sea'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                ? 'btn-ice'
+                : 'bg-surface-light text-brand/50 hover:bg-surface-lighter'
             }`}
           >
             Upload File
@@ -140,16 +140,16 @@ export function PaperSubmit() {
 
         {/* Error */}
         {error && (
-          <div className="mb-6 p-4 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400">
+          <div className="mb-6 p-4 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400">
             {error}
           </div>
         )}
 
         {/* Content Area */}
-        <div className="glass rounded-xl p-6 mb-6">
+        <div className="glass-card rounded-xl p-6 mb-6">
           {mode === 'paste' ? (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-brand/70 mb-2">
                 Paste your paper content below
               </label>
               <textarea
@@ -157,9 +157,9 @@ export function PaperSubmit() {
                 onChange={(e) => setPaperText(e.target.value)}
                 placeholder="Paste your essay or paper here..."
                 rows={15}
-                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-ice focus:ring-1 focus:ring-ice focus:outline-none transition-colors resize-none"
+                className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-white placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
               />
-              <div className="flex justify-between mt-2 text-sm text-gray-500">
+              <div className="flex justify-between mt-2 text-sm text-brand/30">
                 <span>{paperText.length} characters</span>
                 <span>~{Math.round(paperText.split(/\s+/).length)} words</span>
               </div>
@@ -175,19 +175,19 @@ export function PaperSubmit() {
               />
 
               {selectedFile ? (
-                <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-surface-light rounded-xl">
                   <div className="flex items-center gap-3">
-                    <FileText className="w-8 h-8 text-ice" />
+                    <FileText className="w-8 h-8 text-brand" />
                     <div>
                       <p className="font-medium text-white">{selectedFile.name}</p>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-brand/50">
                         {(selectedFile.size / 1024).toFixed(1)} KB
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={() => setSelectedFile(null)}
-                    className="p-2 text-gray-400 hover:text-white transition-colors"
+                    className="p-2 text-brand/50 hover:text-white transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -195,13 +195,13 @@ export function PaperSubmit() {
               ) : (
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full p-12 border-2 border-dashed border-white/20 rounded-lg hover:border-ice/50 transition-colors"
+                  className="w-full p-12 border-2 border-dashed border-brand/20 rounded-xl hover:border-brand/50 transition-colors"
                 >
-                  <Upload className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                  <p className="text-gray-400 mb-2">
+                  <Upload className="w-12 h-12 text-brand/30 mx-auto mb-4" />
+                  <p className="text-brand/50 mb-2">
                     Click to upload or drag and drop
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-brand/30">
                     .docx, .pdf, or .txt (max 10MB)
                   </p>
                 </button>
@@ -214,11 +214,11 @@ export function PaperSubmit() {
         <button
           onClick={handleSubmit}
           disabled={loading || (mode === 'paste' ? paperText.length < 100 : !selectedFile)}
-          className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-ice text-deep-sea font-semibold rounded-lg hover:bg-ice-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+          className="w-full flex items-center justify-center gap-2 px-6 py-4 btn-ice rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-lg"
         >
           {loading ? (
             <>
-              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-deep-sea"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-midnight"></div>
               Processing...
             </>
           ) : (
@@ -229,7 +229,7 @@ export function PaperSubmit() {
           )}
         </button>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
+        <p className="text-center text-sm text-brand/30 mt-4">
           Once you continue, the timed quiz will begin
         </p>
       </div>

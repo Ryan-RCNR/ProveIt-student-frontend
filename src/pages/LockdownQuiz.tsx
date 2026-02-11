@@ -138,7 +138,7 @@ export function LockdownQuiz() {
   return (
     <div className="min-h-screen bg-midnight">
       {/* Fixed Timer Header */}
-      <div className="fixed top-0 left-0 right-0 bg-deep-sea border-b border-white/10 z-50">
+      <div className="fixed top-0 left-0 right-0 bg-surface border-b border-brand/15 z-50">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <QuizTimer
@@ -147,7 +147,7 @@ export function LockdownQuiz() {
               onTimeUp={handleTimeUp}
               onWarning={handleTimerWarning}
             />
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-brand/50">
               {answeredCount} / {totalItemsToAnswer} answered
             </span>
           </div>
@@ -155,7 +155,7 @@ export function LockdownQuiz() {
           <button
             onClick={() => handleSubmit(false)}
             disabled={loading}
-            className="px-4 py-2 bg-ice text-deep-sea font-semibold rounded-lg hover:bg-ice-muted transition-colors disabled:opacity-50"
+            className="px-4 py-2 btn-ice rounded-lg disabled:opacity-50"
           >
             {loading ? 'Submitting...' : 'Submit Quiz'}
           </button>
@@ -177,7 +177,7 @@ export function LockdownQuiz() {
         <div className="max-w-3xl mx-auto space-y-6">
           {/* Error */}
           {error && (
-            <div className="p-4 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400">
+            <div className="p-4 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400">
               {error}
             </div>
           )}
@@ -197,14 +197,14 @@ export function LockdownQuiz() {
           {outlineFields.length > 0 && (
             <>
               <div className="pt-6">
-                <h2 className="text-xl font-semibold text-white mb-2">Reflection Questions</h2>
-                <p className="text-gray-400">Answer the following questions about your paper.</p>
+                <h2 className="text-xl font-semibold text-brand mb-2">Reflection Questions</h2>
+                <p className="text-brand/50">Answer the following questions about your paper.</p>
               </div>
 
               {outlineFields.map((field, index) => (
-                <div key={index} className="glass rounded-xl p-6">
+                <div key={index} className="glass-card rounded-xl p-6">
                   <div className="flex items-start gap-4 mb-4">
-                    <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-ice-muted/20 text-ice-muted rounded-full font-semibold text-sm">
+                    <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-brand-dark/20 text-brand-dark rounded-full font-semibold text-sm">
                       R{index + 1}
                     </span>
                     <p className="text-white flex-1">{field.label}</p>
@@ -223,7 +223,7 @@ export function LockdownQuiz() {
                       }
                       placeholder="Type your response..."
                       rows={4}
-                      className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-ice focus:ring-1 focus:ring-ice focus:outline-none transition-colors resize-none"
+                      className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-white placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
                     />
                   </div>
                 </div>
@@ -236,7 +236,7 @@ export function LockdownQuiz() {
             <button
               onClick={() => handleSubmit(false)}
               disabled={loading}
-              className="w-full px-6 py-4 bg-ice text-deep-sea font-semibold rounded-lg hover:bg-ice-muted transition-colors disabled:opacity-50 text-lg"
+              className="w-full px-6 py-4 btn-ice rounded-lg disabled:opacity-50 text-lg"
             >
               {loading ? 'Submitting...' : 'Submit Quiz'}
             </button>

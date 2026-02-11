@@ -66,7 +66,7 @@ export function QuizTimer({
           ? 'bg-red-500/20 text-red-400'
           : timeRemaining < 300
           ? 'bg-yellow-500/20 text-yellow-400'
-          : 'bg-ice/20 text-ice'
+          : 'bg-brand/20 text-brand'
       }`}
     >
       <Clock className="w-4 h-4" />
