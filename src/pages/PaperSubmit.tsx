@@ -56,6 +56,12 @@ export function PaperSubmit() {
       return
     }
 
+    // Confirm before submitting -- once submitted, the timed quiz begins immediately
+    const confirmed = confirm(
+      'Are you sure you want to submit your paper? Once submitted, the timed quiz will begin immediately and cannot be restarted.'
+    )
+    if (!confirmed) return
+
     setLoading(true)
     setError(null)
 
