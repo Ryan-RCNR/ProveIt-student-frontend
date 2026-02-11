@@ -75,6 +75,7 @@ export interface QuizQuestion {
 
 export interface PaperSubmitResponse {
   submission_id: string
+  session_token: string
   quiz_questions: QuizQuestion[]
   time_limit_minutes: number
   started_at: string
@@ -129,12 +130,14 @@ export async function submitPaperFile(
 
 export async function submitQuiz(
   submissionId: string,
+  sessionToken: string,
   answers: { question_id: string; answer: string }[],
   outlineResponses: { field_label: string; response: string }[],
   lockdownEvents: LockdownEvent[],
   wasForced: boolean = false
 ): Promise<QuizSubmitResponse> {
   const response = await api.post(`/submissions/${submissionId}/quiz`, {
+    session_token: sessionToken,
     answers,
     outline_responses: outlineResponses,
     lockdown_events: lockdownEvents,

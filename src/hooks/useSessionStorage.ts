@@ -34,6 +34,7 @@ export interface SessionData {
   questionCount?: number
   studentName?: string
   submissionId?: string
+  sessionToken?: string
   quizQuestions?: QuizQuestion[]
   startedAt?: string
 }

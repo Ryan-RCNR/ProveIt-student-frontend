@@ -84,6 +84,7 @@ export function PaperSubmit() {
       setSession({
         ...session,
         submissionId: response.submission_id,
+        sessionToken: response.session_token,
         quizQuestions: response.quiz_questions,
         startedAt: response.started_at,
       })

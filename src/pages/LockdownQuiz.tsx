@@ -47,6 +47,7 @@ export function LockdownQuiz() {
 
       await submitQuiz(
         session.submissionId!,
+        session.sessionToken!,
         answersList,
         outlineList,
         lockdownEvents,
@@ -63,7 +64,7 @@ export function LockdownQuiz() {
       }
       setLoading(false)
     }
-  }, [answers, outlineResponses, session.submissionId, lockdownEvents, loading, navigate])
+  }, [answers, outlineResponses, session.submissionId, session.sessionToken, lockdownEvents, loading, navigate])
 
   const handleTimeUp = useCallback(() => {
     handleSubmit(true)
@@ -123,7 +124,7 @@ export function LockdownQuiz() {
     setAnswers((prev) => ({ ...prev, [questionId]: value }))
   }, [])
 
-  if (!session.quizQuestions || !session.submissionId || !session.startedAt || !session.timeLimitMinutes) {
+  if (!session.quizQuestions || !session.submissionId || !session.sessionToken || !session.startedAt || !session.timeLimitMinutes) {
     return null
   }
 
