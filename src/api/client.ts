@@ -134,7 +134,8 @@ export async function submitQuiz(
   answers: { question_id: string; answer: string }[],
   outlineResponses: { field_label: string; response: string }[],
   lockdownEvents: LockdownEvent[],
-  wasForced: boolean = false
+  wasForced: boolean = false,
+  lockdownForced: boolean = false
 ): Promise<QuizSubmitResponse> {
   const response = await api.post(`/submissions/${submissionId}/quiz`, {
     session_token: sessionToken,
@@ -142,6 +143,7 @@ export async function submitQuiz(
     outline_responses: outlineResponses,
     lockdown_events: lockdownEvents,
     was_forced: wasForced,
+    lockdown_forced: lockdownForced,
   })
   return response.data
 }

@@ -26,7 +26,7 @@ export function LockdownQuiz() {
     }
   }, [session.startedAt, session.timeLimitMinutes, navigate])
 
-  const handleSubmit = useCallback(async (forced: boolean = false) => {
+  const handleSubmit = useCallback(async (forced: boolean = false, lockdownForced: boolean = false) => {
     if (loading) return
 
     setLoading(true)
@@ -50,15 +50,18 @@ export function LockdownQuiz() {
         count: v.count,
       }))
 
-      await submitQuiz(
+      const response = await submitQuiz(
         session.submissionId!,
         session.sessionToken!,
         answersList,
         outlineList,
         lockdownEvents,
-        forced
+        forced,
+        lockdownForced
       )
 
+      // Store submission status for confirmation page
+      sessionStorage.setItem('proveit_submit_status', response.status)
       sessionStorage.removeItem('proveit_autosave')
       navigate('/complete')
     } catch (err: unknown) {
@@ -75,11 +78,11 @@ export function LockdownQuiz() {
   const violationsRef = useCallback(() => ({ current: [] as Violation[] }), [])()
 
   const handleAutoSubmit = useCallback(() => {
-    handleSubmit(true)
+    handleSubmit(true, true) // forced + lockdown-caused
   }, [handleSubmit])
 
   const handleTimeUp = useCallback(() => {
-    handleSubmit(true)
+    handleSubmit(true, false) // forced by timer, NOT lockdown
   }, [handleSubmit])
 
   // Lockdown
