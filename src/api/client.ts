@@ -88,7 +88,7 @@ export interface QuizSubmitResponse {
 }
 
 export interface LockdownEvent {
-  type: 'tab_switch' | 'copy_attempt' | 'paste_attempt' | 'fullscreen_exit' | 'window_blur'
+  type: 'tab_switch' | 'copy_attempt' | 'paste_attempt' | 'fullscreen_exit' | 'window_blur' | 'cut_attempt' | 'drop_attempt' | 'devtools_attempt'
   timestamp: string
   count: number
 }

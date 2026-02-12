@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertTriangle, Check } from 'lucide-react'
+import { AlertTriangle, Check, Monitor, Maximize } from 'lucide-react'
 import axios from 'axios'
 import { submitQuiz, LockdownEvent, QuizQuestion as QuizQuestionType } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
-import { useLockdown } from '../hooks/useLockdown'
+import { useLockdown, Violation } from '../hooks/useLockdown'
 import { QuizTimer } from '../components/QuizTimer'
 import { QuizQuestion } from '../components/QuizQuestion'
 
@@ -16,8 +16,6 @@ export function LockdownQuiz() {
 
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [outlineResponses, setOutlineResponses] = useState<Record<string, string>>({})
-  const [lockdownEvents, setLockdownEvents] = useState<LockdownEvent[]>([])
-  const [warning, setWarning] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -45,6 +43,13 @@ export function LockdownQuiz() {
         response,
       }))
 
+      // Convert violations to LockdownEvent format for the API
+      const lockdownEvents: LockdownEvent[] = violationsRef.current.map((v) => ({
+        type: v.type as LockdownEvent['type'],
+        timestamp: v.timestamp,
+        count: v.count,
+      }))
+
       await submitQuiz(
         session.submissionId!,
         session.sessionToken!,
@@ -64,35 +69,41 @@ export function LockdownQuiz() {
       }
       setLoading(false)
     }
-  }, [answers, outlineResponses, session.submissionId, session.sessionToken, lockdownEvents, loading, navigate])
+  }, [answers, outlineResponses, session.submissionId, session.sessionToken, loading, navigate])
+
+  // Keep a ref to violations so handleSubmit can access current list without re-rendering
+  const violationsRef = useCallback(() => ({ current: [] as Violation[] }), [])()
+
+  const handleAutoSubmit = useCallback(() => {
+    handleSubmit(true)
+  }, [handleSubmit])
 
   const handleTimeUp = useCallback(() => {
     handleSubmit(true)
   }, [handleSubmit])
 
-  const handleTimerWarning = useCallback((message: string) => {
-    setWarning(message || null)
-  }, [])
-
   // Lockdown
-  const handleLockdownEvent = useCallback((event: LockdownEvent) => {
-    setLockdownEvents((prev) => [...prev, event])
-
-    // Show warning
-    const messages: Record<string, string> = {
-      tab_switch: 'Tab switch detected',
-      window_blur: 'Window unfocused',
-      copy_attempt: 'Copy is disabled',
-      paste_attempt: 'Paste is disabled',
-    }
-    setWarning(messages[event.type] || 'Lockdown violation detected')
-    setTimeout(() => setWarning(null), 3000)
-  }, [])
-
-  useLockdown({
-    onEvent: handleLockdownEvent,
+  const {
+    isFullscreen,
+    isMobileDevice,
+    violations,
+    warning,
+    fullscreenCountdown,
+    enterFullscreen,
+  } = useLockdown({
+    onAutoSubmit: handleAutoSubmit,
     enabled: true,
   })
+
+  // Keep violations ref in sync
+  useEffect(() => {
+    violationsRef.current = violations
+  }, [violations, violationsRef])
+
+  // Enter fullscreen on mount
+  useEffect(() => {
+    enterFullscreen()
+  }, [enterFullscreen])
 
   // Auto-save to session storage (debounced)
   useEffect(() => {
@@ -128,6 +139,24 @@ export function LockdownQuiz() {
     return null
   }
 
+  // Mobile device gate
+  if (isMobileDevice) {
+    return (
+      <div className="min-h-screen bg-midnight flex items-center justify-center p-4">
+        <div className="glass-card rounded-xl p-8 max-w-md text-center">
+          <Monitor className="w-16 h-16 text-brand mx-auto mb-4" />
+          <h1 className="text-2xl font-display text-brand mb-4">Computer Required</h1>
+          <p className="text-brand/50 mb-2">
+            This quiz must be taken on a computer with fullscreen support.
+          </p>
+          <p className="text-brand/30 text-sm">
+            Please open this page on a laptop or desktop computer.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   const questions = session.quizQuestions as QuizQuestionType[]
   const outlineFields = session.outlineFields || []
   const totalQuestions = questions.length
@@ -145,7 +174,7 @@ export function LockdownQuiz() {
               startedAt={session.startedAt}
               timeLimitMinutes={session.timeLimitMinutes}
               onTimeUp={handleTimeUp}
-              onWarning={handleTimerWarning}
+              onWarning={() => {}}
             />
             <span className="text-sm text-brand/50">
               {answeredCount} / {totalItemsToAnswer} answered
@@ -164,10 +193,35 @@ export function LockdownQuiz() {
 
       {/* Warning Toast */}
       {warning && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 animate-pulse">
-          <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-yellow-400">
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50">
+          <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-yellow-400 animate-pulse">
             <AlertTriangle className="w-4 h-4" />
             {warning}
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Re-entry Overlay */}
+      {fullscreenCountdown !== null && !isFullscreen && (
+        <div className="fixed inset-0 z-[100] bg-midnight/95 flex items-center justify-center p-4">
+          <div className="glass-card rounded-xl p-8 max-w-md text-center">
+            <AlertTriangle className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-display text-brand mb-2">Fullscreen Required</h2>
+            <p className="text-brand/50 mb-6">
+              You left fullscreen. Re-enter within {fullscreenCountdown} seconds or your quiz will be auto-submitted.
+            </p>
+            <div className="mb-6">
+              <div className="text-5xl font-mono font-bold text-yellow-400">
+                {fullscreenCountdown}
+              </div>
+            </div>
+            <button
+              onClick={enterFullscreen}
+              className="w-full flex items-center justify-center gap-2 px-6 py-4 btn-ice rounded-lg text-lg"
+            >
+              <Maximize className="w-5 h-5" />
+              Re-enter Fullscreen
+            </button>
           </div>
         </div>
       )}
