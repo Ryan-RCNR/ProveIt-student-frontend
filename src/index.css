@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@rcnr/theme";
+@source "../node_modules/@rcnr/theme/dist";
 
 /* Lockdown mode styles */
 .lockdown-mode {
