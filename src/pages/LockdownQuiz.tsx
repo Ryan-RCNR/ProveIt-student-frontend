@@ -145,7 +145,7 @@ export function LockdownQuiz() {
   // Mobile device gate
   if (isMobileDevice) {
     return (
-      <div className="min-h-screen bg-midnight flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <div className="glass-card rounded-xl p-8 max-w-md text-center">
           <Monitor className="w-16 h-16 text-brand mx-auto mb-4" />
           <h1 className="text-2xl font-display text-brand mb-4">Computer Required</h1>
@@ -168,7 +168,7 @@ export function LockdownQuiz() {
   const answeredCount = Object.keys(answers).length + Object.keys(outlineResponses).length
 
   return (
-    <div className="min-h-screen bg-midnight">
+    <div className="min-h-screen">
       {/* Fixed Timer Header */}
       <div className="fixed top-0 left-0 right-0 bg-surface border-b border-brand/15 z-50">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">

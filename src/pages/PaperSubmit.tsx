@@ -106,7 +106,7 @@ export function PaperSubmit() {
   }
 
   return (
-    <div className="min-h-screen bg-midnight p-4 py-8">
+    <div className="min-h-screen p-4 py-8">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">

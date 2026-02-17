@@ -19,7 +19,7 @@ export function Confirmation() {
   const isLockedOut = status === 'locked_out'
 
   return (
-    <div className="min-h-screen bg-midnight flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md text-center">
         <div className="glass-card rounded-xl p-8">
           {isLockedOut ? (
