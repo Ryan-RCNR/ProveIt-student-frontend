@@ -1,51 +1,5 @@
 @import "tailwindcss";
-
-@theme {
-  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
-
-  --color-brand: #99d9d9;
-  --color-brand-dark: #68A2B9;
-  --color-brand-glow: rgba(153, 217, 217, 0.15);
-  --color-surface: #001628;
-  --color-surface-light: #002040;
-  --color-surface-lighter: #003058;
-  --color-midnight: #000C17;
-}
-
-body {
-  font-family: var(--font-sans);
-  color: white;
-  min-height: 100vh;
-  background:
-    linear-gradient(rgba(153, 217, 217, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(153, 217, 217, 0.05) 1px, transparent 1px),
-    var(--color-midnight);
-  background-size: 60px 60px, 60px 60px, auto;
-  background-attachment: fixed;
-}
-
-@layer utilities {
-  .glass-card {
-    background: #0A1E2E;
-    border: 1px solid rgba(153, 217, 217, 0.15);
-    backdrop-filter: blur(12px);
-  }
-
-  .btn-ice {
-    background: linear-gradient(135deg, #99d9d9 0%, #68A2B9 100%);
-    color: #000C17;
-    font-weight: 600;
-  }
-  .btn-ice:hover {
-    opacity: 0.9;
-  }
-}
-
-*:focus-visible {
-  outline: 2px solid var(--color-brand);
-  outline-offset: 2px;
-}
+@import "@rcnr/theme";
 
 /* Lockdown mode styles */
 .lockdown-mode {
@@ -63,22 +17,4 @@ body {
 .lockdown-mode textarea {
   user-select: text;
   -webkit-user-select: text;
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--color-surface);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-brand-dark);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-brand);
 }
