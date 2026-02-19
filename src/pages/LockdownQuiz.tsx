@@ -47,50 +47,71 @@ export function LockdownQuiz() {
     setError(null)
     setShowSubmitConfirm(false)
 
-    try {
-      const currentAnswers = answersRef.current
-      const currentOutline = outlineResponsesRef.current
+    const currentAnswers = answersRef.current
+    const currentOutline = outlineResponsesRef.current
 
-      const answersList = Object.entries(currentAnswers).map(([question_id, answer]) => ({
-        question_id,
-        answer,
-      }))
+    const answersList = Object.entries(currentAnswers).map(([question_id, answer]) => ({
+      question_id,
+      answer,
+    }))
 
-      const outlineList = Object.entries(currentOutline).map(([field_label, response]) => ({
-        field_label,
-        response,
-      }))
+    const outlineList = Object.entries(currentOutline).map(([field_label, response]) => ({
+      field_label,
+      response,
+    }))
 
-      // Convert violations to LockdownEvent format for the API
-      const lockdownEvents: LockdownEvent[] = violationsRef.current.map((v) => ({
-        type: v.type as LockdownEvent['type'],
-        timestamp: v.timestamp,
-        count: v.count,
-      }))
+    // Convert violations to LockdownEvent format for the API
+    const lockdownEvents: LockdownEvent[] = violationsRef.current.map((v) => ({
+      type: v.type as LockdownEvent['type'],
+      timestamp: v.timestamp,
+      count: v.count,
+    }))
 
-      const response = await submitQuiz(
-        session.submissionId!,
-        session.sessionToken!,
-        answersList,
-        outlineList,
-        lockdownEvents,
-        forced,
-        lockdownForced
-      )
+    // For forced submits, add a hard timeout so we never hang on "Submitting..."
+    // If the API doesn't respond in 10s, navigate to /complete anyway.
+    const FORCED_SUBMIT_TIMEOUT_MS = 10_000
 
-      // Store submission status for confirmation page
-      sessionStorage.setItem('proveit_submit_status', response.status)
+    const submitPromise = submitQuiz(
+      session.submissionId!,
+      session.sessionToken!,
+      answersList,
+      outlineList,
+      lockdownEvents,
+      forced,
+      lockdownForced
+    )
+
+    const navigateToComplete = (status: string) => {
+      sessionStorage.setItem('proveit_submit_status', status)
       sessionStorage.removeItem('proveit_autosave')
       navigate('/complete')
-    } catch (err: unknown) {
-      if (forced) {
-        // Forced submit failed -- navigate to complete page anyway
-        // (the server already has the submission in quiz_in_progress state)
-        sessionStorage.setItem('proveit_submit_status', lockdownForced ? 'locked_out' : 'completed')
-        sessionStorage.removeItem('proveit_autosave')
-        navigate('/complete')
-        return
+    }
+
+    if (forced) {
+      // Race the API call against a timeout — never hang on a forced submit
+      const timeoutPromise = new Promise<'timeout'>((resolve) =>
+        setTimeout(() => resolve('timeout'), FORCED_SUBMIT_TIMEOUT_MS)
+      )
+
+      try {
+        const result = await Promise.race([submitPromise, timeoutPromise])
+        if (result === 'timeout') {
+          navigateToComplete(lockdownForced ? 'locked_out' : 'completed')
+        } else {
+          navigateToComplete(result.status)
+        }
+      } catch {
+        // API error on forced submit — navigate to complete page anyway
+        navigateToComplete(lockdownForced ? 'locked_out' : 'completed')
       }
+      return
+    }
+
+    // Non-forced (manual) submit — no timeout, show errors to student
+    try {
+      const response = await submitPromise
+      navigateToComplete(response.status)
+    } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setError(err.response?.data?.detail || 'Failed to submit. Please try again.')
       } else {
@@ -264,7 +285,7 @@ export function LockdownQuiz() {
         </div>
       )}
 
-      {/* Fullscreen Re-entry Overlay */}
+      {/* Fullscreen Re-entry Overlay (shown when out of fullscreen with countdown active) */}
       {fullscreenCountdown !== null && !isFullscreen && (
         <div className="fixed inset-0 z-[100] bg-midnight/95 flex items-center justify-center p-4" role="alertdialog" aria-label="Fullscreen required">
           <div className="glass-card rounded-xl p-8 max-w-md text-center">
@@ -288,6 +309,16 @@ export function LockdownQuiz() {
               <Maximize className="w-5 h-5" />
               Re-enter Fullscreen
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Lockdown violation countdown (shown when still in fullscreen but focus was lost, e.g. Alt+Tab) */}
+      {fullscreenCountdown !== null && isFullscreen && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[100]" role="alert">
+          <div className="flex items-center gap-3 px-6 py-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400">
+            <AlertTriangle className="w-5 h-5" />
+            <span className="font-medium">Focus lost. Auto-submit in {fullscreenCountdown}s</span>
           </div>
         </div>
       )}

@@ -8,8 +8,8 @@
  *
  * 1-STRIKE LIMIT (environmental — can be accidental once):
  *   fullscreen exit, tab switch, window blur
- *   First exit starts a 10-second wall-clock countdown to re-enter.
- *   Second exit (or countdown expiry) → instant auto-submit.
+ *   First violation starts a 10-second wall-clock countdown to return.
+ *   Second violation (or countdown expiry) → instant auto-submit.
  *
  * Also blocked (no violation, just prevented):
  *   view source (Ctrl/Cmd+U), context menu
@@ -22,8 +22,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 const WARNING_DISPLAY_MS = 5000
 const DEVTOOLS_KEYS = ['I', 'J', 'C', 'K'] // K = Firefox console
-/** After a fullscreen exit, suppress blur violations for this window (ms). */
-const BLUR_SUPPRESS_AFTER_FS_EXIT_MS = 500
+/** After a fullscreen exit, suppress duplicate blur/visibility events briefly (ms). */
+const FS_EXIT_DEDUP_MS = 1000
 /** Seconds the student has to re-enter fullscreen before auto-submit. */
 const FULLSCREEN_REENTRY_SECONDS = 10
 /** Maximum environmental violations before auto-submit. */
@@ -84,8 +84,8 @@ export function useLockdown({
   const graceRef = useRef(false)
   const violationCountRef = useRef(0)
   const eventCountsRef = useRef<Record<string, number>>({})
-  /** Timestamp of last fullscreen exit — used to suppress the blur that follows it. */
-  const lastFsExitRef = useRef(0)
+  /** Timestamp of last environmental violation — used to dedup rapid events. */
+  const lastViolationRef = useRef(0)
   /** Interval ID for the fullscreen re-entry countdown. */
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   /** Wall-clock timestamp when countdown started — prevents JS freeze exploits. */
@@ -173,10 +173,12 @@ export function useLockdown({
       setIsFullscreen(true)
       clearCountdown()
 
-      // Start grace period
+      // Start grace period — suppresses violations while browser settles
       graceRef.current = true
       setTimeout(() => {
         graceRef.current = false
+        // Reset dedup timer so violations after grace aren't suppressed
+        lastViolationRef.current = 0
       }, gracePeriodMs)
     } catch {
       // Fullscreen not supported or denied — start countdown
@@ -200,36 +202,57 @@ export function useLockdown({
   useEffect(() => {
     if (!enabled) return
 
+    /**
+     * Core environmental violation handler.
+     * Deduplicates rapid-fire events (fullscreen exit + blur + visibility
+     * often fire within milliseconds of each other for a single user action).
+     * Starts countdown on first violation, auto-submits on second.
+     */
+    function recordEnvironmentalViolation(type: string) {
+      if (graceRef.current || autoSubmittedRef.current) return
+
+      // Dedup: if another environmental violation was recorded <1s ago, skip
+      const now = Date.now()
+      if (now - lastViolationRef.current < FS_EXIT_DEDUP_MS) return
+      lastViolationRef.current = now
+
+      addViolation(type)
+      // addViolation already handles instant submit if over threshold.
+      // Start countdown if this was the first strike and we're not already counting.
+      if (violationCountRef.current <= MAX_ENVIRONMENTAL_VIOLATIONS && !countdownIntervalRef.current) {
+        startCountdown()
+      }
+    }
+
     // Fullscreen change handler
     function handleFullscreenChange() {
       const fs = !!document.fullscreenElement
       setIsFullscreen(fs)
       if (!fs && !graceRef.current) {
-        lastFsExitRef.current = Date.now()
-        addViolation('fullscreen_exit')
-        // Only start countdown if this was the first violation
-        if (violationCountRef.current <= MAX_ENVIRONMENTAL_VIOLATIONS) {
-          startCountdown()
-        }
+        recordEnvironmentalViolation('fullscreen_exit')
       }
       if (fs) {
         clearCountdown()
       }
     }
 
-    // Visibility change (tab switch)
+    // Visibility change (tab switch / Alt+Tab)
+    // This is the most reliable cross-browser event for Alt+Tab detection.
     function handleVisibilityChange() {
-      if (document.hidden && !graceRef.current) {
-        addViolation('tab_switch')
+      if (document.hidden) {
+        recordEnvironmentalViolation('tab_switch')
+      } else {
+        // Student returned — if in fullscreen, clear countdown
+        if (document.fullscreenElement) {
+          clearCountdown()
+        }
       }
     }
 
-    // Window blur (Alt+Tab, etc.)
-    // Suppressed briefly after fullscreen exit to avoid double-counting.
+    // Window blur (Alt+Tab, popup, etc.)
+    // Fires when window loses focus even if document isn't hidden.
     function handleBlur() {
-      if (graceRef.current) return
-      if (Date.now() - lastFsExitRef.current < BLUR_SUPPRESS_AFTER_FS_EXIT_MS) return
-      addViolation('window_blur')
+      recordEnvironmentalViolation('window_blur')
     }
 
     // Block paste — instant submit
