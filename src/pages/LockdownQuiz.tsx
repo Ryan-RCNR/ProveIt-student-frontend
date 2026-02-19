@@ -23,6 +23,13 @@ export function LockdownQuiz() {
 
   // Proper ref for violations -- survives re-renders, always current
   const violationsRef = useRef<Violation[]>([])
+  // Refs for current answers so forced/auto submit always captures latest state
+  const answersRef = useRef(answers)
+  const outlineResponsesRef = useRef(outlineResponses)
+  const submittingRef = useRef(false)
+
+  useEffect(() => { answersRef.current = answers }, [answers])
+  useEffect(() => { outlineResponsesRef.current = outlineResponses }, [outlineResponses])
 
   // Redirect if no session
   useEffect(() => {
@@ -32,18 +39,24 @@ export function LockdownQuiz() {
   }, [session.startedAt, session.timeLimitMinutes, navigate])
 
   const handleSubmit = useCallback(async (forced: boolean = false, lockdownForced: boolean = false) => {
-    if (loading) return
+    // Forced submits (lockdown/timer) always go through, even if already submitting
+    if (submittingRef.current && !forced) return
+    submittingRef.current = true
 
     setLoading(true)
     setError(null)
+    setShowSubmitConfirm(false)
 
     try {
-      const answersList = Object.entries(answers).map(([question_id, answer]) => ({
+      const currentAnswers = answersRef.current
+      const currentOutline = outlineResponsesRef.current
+
+      const answersList = Object.entries(currentAnswers).map(([question_id, answer]) => ({
         question_id,
         answer,
       }))
 
-      const outlineList = Object.entries(outlineResponses).map(([field_label, response]) => ({
+      const outlineList = Object.entries(currentOutline).map(([field_label, response]) => ({
         field_label,
         response,
       }))
@@ -70,14 +83,23 @@ export function LockdownQuiz() {
       sessionStorage.removeItem('proveit_autosave')
       navigate('/complete')
     } catch (err: unknown) {
+      if (forced) {
+        // Forced submit failed -- navigate to complete page anyway
+        // (the server already has the submission in quiz_in_progress state)
+        sessionStorage.setItem('proveit_submit_status', lockdownForced ? 'locked_out' : 'completed')
+        sessionStorage.removeItem('proveit_autosave')
+        navigate('/complete')
+        return
+      }
       if (axios.isAxiosError(err)) {
         setError(err.response?.data?.detail || 'Failed to submit. Please try again.')
       } else {
         setError('An unexpected error occurred. Please try again.')
       }
+      submittingRef.current = false
       setLoading(false)
     }
-  }, [answers, outlineResponses, session.submissionId, session.sessionToken, loading, navigate])
+  }, [session.submissionId, session.sessionToken, navigate])
 
   const handleAutoSubmit = useCallback(() => {
     handleSubmit(true, true) // forced + lockdown-caused
