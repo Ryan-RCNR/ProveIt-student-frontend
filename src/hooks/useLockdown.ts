@@ -1,36 +1,28 @@
 /**
  * Lockdown hook — enforces fullscreen quiz environment.
  *
- * Two-tier violation policy:
+ * STRICT ENFORCEMENT:
+ *   - Cheating attempts (copy/paste/devtools): instant auto-submit, no grace.
+ *   - Environmental violations (fullscreen exit, tab switch, Alt+Tab):
+ *     First violation: 5-second countdown to return. Second: instant submit.
  *
- * INSTANT AUTO-SUBMIT (cheating attempts — never accidental):
- *   copy, cut, paste, external drop, devtools shortcuts
+ * Blocked silently (no violation):
+ *   view source (Ctrl/Cmd+U), context menu, print (Ctrl/Cmd+P)
  *
- * 1-STRIKE LIMIT (environmental — can be accidental once):
- *   fullscreen exit, tab switch, window blur
- *   First violation starts a 10-second wall-clock countdown to return.
- *   Second violation (or countdown expiry) → instant auto-submit.
- *
- * Also blocked (no violation, just prevented):
- *   view source (Ctrl/Cmd+U), context menu
- *
- * The countdown uses wall-clock timestamps (Date.now()) so freezing
- * JS execution (e.g. via browser task manager) cannot buy extra time.
+ * If a student triggers a violation by accident, the teacher
+ * can reset the submission and let them re-enter.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-const WARNING_DISPLAY_MS = 5000
-const DEVTOOLS_KEYS = ['I', 'J', 'C', 'K'] // K = Firefox console
-/** After a fullscreen exit, suppress duplicate blur/visibility events briefly (ms). */
-const FS_EXIT_DEDUP_MS = 1000
-/** Seconds the student has to re-enter fullscreen before auto-submit. */
-const FULLSCREEN_REENTRY_SECONDS = 10
-/** Maximum environmental violations before auto-submit. */
-const MAX_ENVIRONMENTAL_VIOLATIONS = 1
+const DEVTOOLS_KEYS = ['I', 'J', 'C', 'K']
+/** Dedup window — fullscreen exit + blur + visibility fire together for one action. */
+const DEDUP_MS = 1000
+/** Seconds on the countdown clock for first environmental violation. */
+const COUNTDOWN_SECONDS = 5
 
-/** Violations that trigger instant auto-submit. */
-const INSTANT_SUBMIT_VIOLATIONS = new Set([
+/** Violations that trigger instant auto-submit with no grace. */
+const INSTANT_VIOLATIONS = new Set([
   'paste_attempt',
   'copy_attempt',
   'cut_attempt',
@@ -54,9 +46,8 @@ interface UseLockdownReturn {
   isFullscreen: boolean
   isMobileDevice: boolean
   violations: Violation[]
-  warning: string | null
-  /** Seconds remaining to re-enter fullscreen, or null if in fullscreen. */
-  fullscreenCountdown: number | null
+  /** Seconds remaining on countdown, or null. */
+  countdown: number | null
   enterFullscreen: () => Promise<void>
 }
 
@@ -73,27 +64,25 @@ function detectMobileDevice(): boolean {
 
 export function useLockdown({
   enabled,
-  gracePeriodMs = 5000,
+  gracePeriodMs = 3000,
   onAutoSubmit,
 }: UseLockdownOptions): UseLockdownReturn {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [violations, setViolations] = useState<Violation[]>([])
-  const [warning, setWarning] = useState<string | null>(null)
   const [isMobileDevice] = useState(() => detectMobileDevice())
-  const [fullscreenCountdown, setFullscreenCountdown] = useState<number | null>(null)
+  const [countdown, setCountdown] = useState<number | null>(null)
+
   const graceRef = useRef(false)
-  const violationCountRef = useRef(0)
   const eventCountsRef = useRef<Record<string, number>>({})
-  /** Timestamp of last environmental violation — used to dedup rapid events. */
-  const lastViolationRef = useRef(0)
-  /** Interval ID for the fullscreen re-entry countdown. */
-  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  /** Wall-clock timestamp when countdown started — prevents JS freeze exploits. */
-  const countdownStartRef = useRef(0)
-  /** Guard against calling onAutoSubmit more than once. */
   const autoSubmittedRef = useRef(false)
-  /** Tracks whether a drag started inside the page (internal rearrange = OK). */
+  const lastViolationRef = useRef(0)
   const internalDragRef = useRef(false)
+  /** How many environmental violations have occurred. */
+  const envViolationCountRef = useRef(0)
+  /** Countdown interval. */
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  /** Wall-clock start of countdown (prevents JS-freeze exploits). */
+  const countdownStartRef = useRef(0)
 
   const triggerAutoSubmit = useCallback(() => {
     if (autoSubmittedRef.current) return
@@ -101,69 +90,80 @@ export function useLockdown({
     onAutoSubmit()
   }, [onAutoSubmit])
 
-  // --- Fullscreen countdown timer (wall-clock based) ---
   const clearCountdown = useCallback(() => {
     if (countdownIntervalRef.current) {
       clearInterval(countdownIntervalRef.current)
       countdownIntervalRef.current = null
     }
     countdownStartRef.current = 0
-    setFullscreenCountdown(null)
+    setCountdown(null)
   }, [])
 
   const startCountdown = useCallback(() => {
     clearCountdown()
     countdownStartRef.current = Date.now()
-    setFullscreenCountdown(FULLSCREEN_REENTRY_SECONDS)
+    setCountdown(COUNTDOWN_SECONDS)
 
     countdownIntervalRef.current = setInterval(() => {
       const elapsed = (Date.now() - countdownStartRef.current) / 1000
-      const remaining = Math.max(0, Math.ceil(FULLSCREEN_REENTRY_SECONDS - elapsed))
-      setFullscreenCountdown(remaining)
+      const remaining = Math.max(0, Math.ceil(COUNTDOWN_SECONDS - elapsed))
+      setCountdown(remaining)
       if (remaining <= 0) {
         clearCountdown()
         triggerAutoSubmit()
       }
-    }, 500) // Check every 500ms for smoother display + faster freeze detection
+    }, 500)
   }, [clearCountdown, triggerAutoSubmit])
 
-  // Clean up countdown on unmount
+  // Clean up on unmount
   useEffect(() => {
     return () => clearCountdown()
   }, [clearCountdown])
 
+  /** Record a violation and instantly auto-submit (cheating attempts). */
   const addViolation = useCallback(
     (type: string) => {
-      if (graceRef.current) return
+      if (graceRef.current || autoSubmittedRef.current) return
 
       eventCountsRef.current[type] = (eventCountsRef.current[type] || 0) + 1
-      const v: Violation = {
+      setViolations((prev) => [...prev, {
         type,
         timestamp: new Date().toISOString(),
         count: eventCountsRef.current[type],
-      }
-      setViolations((prev) => [...prev, v])
+      }])
 
-      // Instant submit for cheating attempts
-      if (INSTANT_SUBMIT_VIOLATIONS.has(type)) {
-        setWarning('Your quiz has been submitted.')
+      if (INSTANT_VIOLATIONS.has(type)) {
         triggerAutoSubmit()
         return
       }
 
-      // Environmental violations: 1 strike, then you're out
-      violationCountRef.current += 1
-
-      if (violationCountRef.current > MAX_ENVIRONMENTAL_VIOLATIONS) {
-        // Second environmental violation — instant submit, no countdown
-        setWarning('Your quiz has been submitted.')
+      // Environmental violation
+      envViolationCountRef.current += 1
+      if (envViolationCountRef.current > 1) {
+        // Second strike — instant submit
         triggerAutoSubmit()
       } else {
-        setWarning('Warning: leave again and your quiz will be auto-submitted.')
-        setTimeout(() => setWarning(null), WARNING_DISPLAY_MS)
+        // First strike — start countdown
+        startCountdown()
       }
     },
-    [triggerAutoSubmit]
+    [triggerAutoSubmit, startCountdown]
+  )
+
+  /**
+   * Environmental violation with dedup.
+   * Fullscreen exit + blur + visibility often fire within ms of each other
+   * for a single user action. Only count the first one.
+   */
+  const addEnvironmentalViolation = useCallback(
+    (type: string) => {
+      if (graceRef.current || autoSubmittedRef.current) return
+      const now = Date.now()
+      if (now - lastViolationRef.current < DEDUP_MS) return
+      lastViolationRef.current = now
+      addViolation(type)
+    },
+    [addViolation]
   )
 
   // Enter fullscreen
@@ -173,21 +173,18 @@ export function useLockdown({
       setIsFullscreen(true)
       clearCountdown()
 
-      // Start grace period — suppresses violations while browser settles
+      // Brief grace period while browser settles into fullscreen
       graceRef.current = true
       setTimeout(() => {
         graceRef.current = false
-        // Reset dedup timer so violations after grace aren't suppressed
         lastViolationRef.current = 0
       }, gracePeriodMs)
     } catch {
-      // Fullscreen not supported or denied — start countdown
       setIsFullscreen(false)
-      startCountdown()
     }
-  }, [gracePeriodMs, clearCountdown, startCountdown])
+  }, [gracePeriodMs, clearCountdown])
 
-  // Beforeunload — prevent accidental tab close / navigation
+  // Beforeunload — prevent accidental tab close
   useEffect(() => {
     if (!enabled) return
 
@@ -199,69 +196,36 @@ export function useLockdown({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [enabled])
 
+  // All lockdown event listeners
   useEffect(() => {
     if (!enabled) return
 
-    /**
-     * Core environmental violation handler.
-     * Deduplicates rapid-fire events (fullscreen exit + blur + visibility
-     * often fire within milliseconds of each other for a single user action).
-     * Starts countdown on first violation, auto-submits on second.
-     */
-    function recordEnvironmentalViolation(type: string) {
-      if (graceRef.current || autoSubmittedRef.current) return
-
-      // Dedup: if another environmental violation was recorded <1s ago, skip
-      const now = Date.now()
-      if (now - lastViolationRef.current < FS_EXIT_DEDUP_MS) return
-      lastViolationRef.current = now
-
-      addViolation(type)
-      // addViolation already handles instant submit if over threshold.
-      // Start countdown if this was the first strike and we're not already counting.
-      if (violationCountRef.current <= MAX_ENVIRONMENTAL_VIOLATIONS && !countdownIntervalRef.current) {
-        startCountdown()
-      }
-    }
-
-    // Fullscreen change handler
     function handleFullscreenChange() {
       const fs = !!document.fullscreenElement
       setIsFullscreen(fs)
-      if (!fs && !graceRef.current) {
-        recordEnvironmentalViolation('fullscreen_exit')
+      if (!fs) {
+        addEnvironmentalViolation('fullscreen_exit')
       }
       if (fs) {
         clearCountdown()
       }
     }
 
-    // Visibility change (tab switch / Alt+Tab)
-    // This is the most reliable cross-browser event for Alt+Tab detection.
     function handleVisibilityChange() {
       if (document.hidden) {
-        recordEnvironmentalViolation('tab_switch')
-      } else {
-        // Student returned — if in fullscreen, clear countdown
-        if (document.fullscreenElement) {
-          clearCountdown()
-        }
+        addEnvironmentalViolation('tab_switch')
       }
     }
 
-    // Window blur (Alt+Tab, popup, etc.)
-    // Fires when window loses focus even if document isn't hidden.
     function handleBlur() {
-      recordEnvironmentalViolation('window_blur')
+      addEnvironmentalViolation('window_blur')
     }
 
-    // Block paste — instant submit
     function handlePaste(e: Event) {
       e.preventDefault()
       addViolation('paste_attempt')
     }
 
-    // Block copy & cut — instant submit
     function handleCopy(e: Event) {
       e.preventDefault()
       addViolation('copy_attempt')
@@ -272,7 +236,6 @@ export function useLockdown({
       addViolation('cut_attempt')
     }
 
-    // Drag/drop: allow internal rearranging, block external drops.
     function handleDragStart() {
       internalDragRef.current = true
     }
@@ -294,35 +257,29 @@ export function useLockdown({
       e.preventDefault()
     }
 
-    // Block DevTools shortcuts (Ctrl AND Cmd for Mac support) — instant submit
     function handleKeydown(e: KeyboardEvent) {
       const modKey = e.ctrlKey || e.metaKey
 
-      // F12
       if (e.key === 'F12') {
         e.preventDefault()
         addViolation('devtools_attempt')
         return
       }
-      // Ctrl/Cmd+Shift+I / J / C / K
       if (modKey && e.shiftKey && DEVTOOLS_KEYS.includes(e.key.toUpperCase())) {
         e.preventDefault()
         addViolation('devtools_attempt')
         return
       }
-      // Ctrl/Cmd+U (view source) — blocked silently, no violation
       if (modKey && e.key.toLowerCase() === 'u') {
         e.preventDefault()
         return
       }
-      // Block print (Ctrl+P)
       if (modKey && e.key.toLowerCase() === 'p') {
         e.preventDefault()
         return
       }
     }
 
-    // Context menu prevention
     function handleContextMenu(e: MouseEvent) {
       e.preventDefault()
     }
@@ -340,7 +297,6 @@ export function useLockdown({
     document.addEventListener('keydown', handleKeydown)
     document.addEventListener('contextmenu', handleContextMenu)
 
-    // Add lockdown class to body
     document.body.classList.add('lockdown-mode')
 
     return () => {
@@ -358,14 +314,13 @@ export function useLockdown({
       document.removeEventListener('contextmenu', handleContextMenu)
       document.body.classList.remove('lockdown-mode')
     }
-  }, [enabled, addViolation, startCountdown, clearCountdown])
+  }, [enabled, addViolation, addEnvironmentalViolation, clearCountdown])
 
   return {
     isFullscreen,
     isMobileDevice,
     violations,
-    warning,
-    fullscreenCountdown,
+    countdown,
     enterFullscreen,
   }
 }

@@ -135,8 +135,7 @@ export function LockdownQuiz() {
     isFullscreen,
     isMobileDevice,
     violations,
-    warning,
-    fullscreenCountdown,
+    countdown,
     enterFullscreen,
   } = useLockdown({
     onAutoSubmit: handleAutoSubmit,
@@ -275,31 +274,18 @@ export function LockdownQuiz() {
         </div>
       </div>
 
-      {/* Warning Toast */}
-      {warning && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50" role="alert" aria-live="polite">
-          <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-yellow-400 animate-pulse">
-            <AlertTriangle className="w-4 h-4" />
-            {warning}
-          </div>
-        </div>
-      )}
-
-      {/* Fullscreen Re-entry Overlay (shown when out of fullscreen with countdown active) */}
-      {fullscreenCountdown !== null && !isFullscreen && (
+      {/* Lockdown violation overlay — 5s countdown to re-enter fullscreen */}
+      {countdown !== null && !isFullscreen && (
         <div className="fixed inset-0 z-[100] bg-midnight/95 flex items-center justify-center p-4" role="alertdialog" aria-label="Fullscreen required">
           <div className="glass-card rounded-xl p-8 max-w-md text-center">
-            <AlertTriangle className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-display text-brand mb-2">Fullscreen Required</h2>
-            <p className="text-brand/50 mb-2">
-              You left fullscreen mode.
-            </p>
-            <p className="text-sm text-brand/40 mb-6">
-              Click the button below to resume your quiz. If you don't re-enter within {fullscreenCountdown} seconds, your answers will be submitted automatically.
+            <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-display text-brand mb-2">Lockdown Violation</h2>
+            <p className="text-brand/50 mb-6">
+              You left fullscreen. Re-enter now or your quiz will be submitted.
             </p>
             <div className="mb-6">
-              <div className="text-5xl font-mono font-bold text-yellow-400">
-                {fullscreenCountdown}
+              <div className="text-5xl font-mono font-bold text-red-400">
+                {countdown}
               </div>
             </div>
             <button
@@ -313,12 +299,12 @@ export function LockdownQuiz() {
         </div>
       )}
 
-      {/* Lockdown violation countdown (shown when still in fullscreen but focus was lost, e.g. Alt+Tab) */}
-      {fullscreenCountdown !== null && isFullscreen && (
+      {/* In-fullscreen countdown (Alt+Tab while still technically fullscreen) */}
+      {countdown !== null && isFullscreen && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[100]" role="alert">
           <div className="flex items-center gap-3 px-6 py-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400">
             <AlertTriangle className="w-5 h-5" />
-            <span className="font-medium">Focus lost. Auto-submit in {fullscreenCountdown}s</span>
+            <span className="font-medium">Focus lost. Auto-submit in {countdown}s</span>
           </div>
         </div>
       )}
