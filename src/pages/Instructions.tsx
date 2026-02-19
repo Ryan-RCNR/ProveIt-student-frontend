@@ -79,9 +79,9 @@ export function Instructions() {
               <p className="font-medium text-yellow-400 mb-1">Important:</p>
               <ul className="text-brand/70 space-y-1">
                 <li>Once you start the quiz, the timer begins immediately</li>
-                <li>Switching tabs or windows will be logged</li>
+                <li>Switching tabs, windows, or leaving fullscreen will auto-submit your quiz as-is</li>
                 <li>Copy/paste is disabled during the quiz</li>
-                <li>Your answers are auto-saved as you go</li>
+                <li>Your teacher can reset your submission if needed</li>
               </ul>
             </div>
           </div>
