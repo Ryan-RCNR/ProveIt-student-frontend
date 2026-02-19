@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, Check, Monitor, Maximize, Shield } from 'lucide-react'
 import axios from 'axios'
-import { submitQuiz, reportLockdownEvent, LockdownEvent, QuizQuestion as QuizQuestionType } from '../api/client'
+import { submitQuiz, submitQuizBeacon, reportLockdownEvent, LockdownEvent, QuizQuestion as QuizQuestionType } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
 import { useLockdown, Violation } from '../hooks/useLockdown'
 import { QuizTimer } from '../components/QuizTimer'
@@ -73,7 +73,23 @@ export function LockdownQuiz() {
       navigate('/complete')
     }
 
-    // Fire the API call
+    if (forced) {
+      // Use beacon/keepalive so the request survives page navigation
+      submitQuizBeacon(
+        session.submissionId!,
+        session.sessionToken!,
+        answersList,
+        outlineList,
+        lockdownEvents,
+        forced,
+        lockdownForced
+      )
+      // Navigate away immediately -- don't make the student wait for grading/AI
+      navigateToComplete(lockdownForced ? 'locked_out' : 'completed')
+      return
+    }
+
+    // Non-forced: use normal axios call so we can show errors
     const submitPromise = submitQuiz(
       session.submissionId!,
       session.sessionToken!,
@@ -83,14 +99,6 @@ export function LockdownQuiz() {
       forced,
       lockdownForced
     )
-
-    if (forced) {
-      // Navigate away immediately -- don't make the student wait for grading/AI
-      navigateToComplete(lockdownForced ? 'locked_out' : 'completed')
-      // Let the API call finish in the background (ignore result)
-      submitPromise.catch(() => {})
-      return
-    }
 
     // Non-forced (manual) submit — no timeout, show errors to student
     try {

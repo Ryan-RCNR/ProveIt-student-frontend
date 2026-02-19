@@ -167,6 +167,49 @@ export async function submitQuiz(
   return response.data
 }
 
+/**
+ * Fire-and-forget quiz submission that survives page navigation.
+ * Uses fetch with keepalive so the request completes even after
+ * the student is navigated to the completion page.
+ */
+export function submitQuizBeacon(
+  submissionId: string,
+  sessionToken: string,
+  answers: { question_id: string; answer: string }[],
+  outlineResponses: { field_label: string; response: string }[],
+  lockdownEvents: LockdownEvent[],
+  wasForced: boolean,
+  lockdownForced: boolean
+): void {
+  const url = `${API_URL}/api/proveit/submissions/${submissionId}/quiz`
+  const body = JSON.stringify({
+    session_token: sessionToken,
+    answers,
+    outline_responses: outlineResponses,
+    lockdown_events: lockdownEvents,
+    was_forced: wasForced,
+    lockdown_forced: lockdownForced,
+  })
+
+  // Try fetch with keepalive first (survives navigation)
+  try {
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: true,
+    }).catch(() => {})
+  } catch {
+    // Fallback: sendBeacon (limited to 64KB but guaranteed delivery)
+    try {
+      navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }))
+    } catch {
+      // Last resort: fire normal axios call and hope it completes
+      api.post(`/submissions/${submissionId}/quiz`, JSON.parse(body)).catch(() => {})
+    }
+  }
+}
+
 export async function requestEntry(
   accessCode: string,
   studentName: string
