@@ -6,6 +6,13 @@ export function Confirmation() {
   const { session, clearSession } = useSession()
   const [status] = useState(() => sessionStorage.getItem('proveit_submit_status') || 'completed')
 
+  // Exit fullscreen on arrival so students can see browser controls
+  useEffect(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {})
+    }
+  }, [])
+
   // Clear session after showing confirmation
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -61,7 +68,7 @@ export function Confirmation() {
           )}
 
           <p className="text-brand/30 text-sm">
-            You may now close this window.
+            You may now close this tab.
           </p>
         </div>
 
