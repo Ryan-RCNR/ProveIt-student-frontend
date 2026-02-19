@@ -169,11 +169,10 @@ export async function submitQuiz(
 
 /**
  * Submit quiz for forced/lockdown submits.
- * Fires the request and waits 2 seconds for it to reach the server,
- * then resolves so the caller can navigate away. The backend commits
- * the submission immediately (before AI grading), so 2s is plenty.
- * We do NOT abort the request -- the backend continues processing
- * AI grading even after we navigate away.
+ * The backend saves answers + status immediately and returns the response
+ * before AI grading starts (AI runs in a background task). This means
+ * the response arrives in <1s, so we can safely await it and navigate
+ * without risk of the student closing the tab before the data is saved.
  */
 export async function submitQuizForced(
   submissionId: string,
@@ -184,18 +183,14 @@ export async function submitQuizForced(
   wasForced: boolean,
   lockdownForced: boolean
 ): Promise<void> {
-  // Fire the request (don't await the full response -- AI grading takes seconds)
-  api.post(`/submissions/${submissionId}/quiz`, {
+  await api.post(`/submissions/${submissionId}/quiz`, {
     session_token: sessionToken,
     answers,
     outline_responses: outlineResponses,
     lockdown_events: lockdownEvents,
     was_forced: wasForced,
     lockdown_forced: lockdownForced,
-  }).catch(() => {})
-
-  // Wait 2s for the request to reach the server and commit the first phase
-  await new Promise((resolve) => setTimeout(resolve, 2000))
+  })
 }
 
 export async function requestEntry(
