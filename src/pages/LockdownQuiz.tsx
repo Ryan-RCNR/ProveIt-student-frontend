@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertTriangle, Check, Monitor, Maximize, Shield } from 'lucide-react'
+import { AlertTriangle, Check, Monitor, Maximize, Shield, Loader2 } from 'lucide-react'
 import axios from 'axios'
 import { submitQuiz, submitQuizForced, reportLockdownEvent, LockdownEvent, QuizQuestion as QuizQuestionType } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
@@ -17,6 +17,7 @@ export function LockdownQuiz() {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [outlineResponses, setOutlineResponses] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const [forcedSubmitting, setForcedSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [quizStarted, setQuizStarted] = useState(false)
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false)
@@ -74,6 +75,7 @@ export function LockdownQuiz() {
     }
 
     if (forced) {
+      setForcedSubmitting(true)
       // Wait for the request to actually reach the server (up to 8s timeout)
       // then navigate -- ensures the submission isn't lost
       await submitQuizForced(
@@ -310,6 +312,19 @@ export function LockdownQuiz() {
           <div className="flex items-center gap-3 px-6 py-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400">
             <AlertTriangle className="w-5 h-5" />
             <span className="font-medium">Focus lost. Auto-submit in {countdown}s</span>
+          </div>
+        </div>
+      )}
+
+      {/* Forced submit overlay -- blocks all interaction while submitting */}
+      {forcedSubmitting && (
+        <div className="fixed inset-0 z-[100] bg-midnight/90 flex items-center justify-center p-4">
+          <div className="glass-card rounded-xl p-8 max-w-md text-center">
+            <Loader2 className="w-12 h-12 text-brand mx-auto mb-4 animate-spin" />
+            <h2 className="text-xl font-display text-brand mb-2">Submitting Your Quiz</h2>
+            <p className="text-brand/50">
+              Your answers are being sent to your teacher. Please wait.
+            </p>
           </div>
         </div>
       )}
