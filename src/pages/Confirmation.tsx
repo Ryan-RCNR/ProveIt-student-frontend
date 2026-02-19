@@ -13,18 +13,6 @@ export function Confirmation() {
     }
   }, [])
 
-  // Mark assignment as completed in persistent storage to prevent re-entry
-  useEffect(() => {
-    if (!session.assignmentId) return
-    try {
-      const completed = JSON.parse(localStorage.getItem('proveit_completed') || '[]')
-      if (!completed.includes(session.assignmentId)) {
-        completed.push(session.assignmentId)
-        localStorage.setItem('proveit_completed', JSON.stringify(completed))
-      }
-    } catch { /* ignore storage errors */ }
-  }, [session.assignmentId])
-
   // Clear session after showing confirmation
   useEffect(() => {
     const timer = setTimeout(() => {

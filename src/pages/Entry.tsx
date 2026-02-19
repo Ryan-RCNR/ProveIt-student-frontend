@@ -26,16 +26,6 @@ export function Entry() {
     try {
       const data = await verifyCode(accessCode.trim())
 
-      // Check if this student already submitted for this assignment (persistent)
-      try {
-        const completed = JSON.parse(localStorage.getItem('proveit_completed') || '[]')
-        if (completed.includes(data.assignment_id)) {
-          setError('You have already submitted for this assignment on this device. If you need to retake, ask your teacher to reset your submission.')
-          setLoading(false)
-          return
-        }
-      } catch { /* ignore parse errors */ }
-
       // If teacher requires approval, create entry request and go to waiting room
       if (data.require_entry_approval) {
         const entryData = await requestEntry(accessCode.trim(), studentName.trim())

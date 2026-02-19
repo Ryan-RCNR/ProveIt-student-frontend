@@ -89,15 +89,6 @@ export function PaperSubmit() {
         startedAt: response.started_at,
       })
 
-      // Mark this assignment as started in persistent storage to prevent re-entry
-      try {
-        const completed = JSON.parse(localStorage.getItem('proveit_completed') || '[]')
-        if (!completed.includes(session.assignmentId)) {
-          completed.push(session.assignmentId)
-          localStorage.setItem('proveit_completed', JSON.stringify(completed))
-        }
-      } catch { /* ignore storage errors */ }
-
       navigate('/quiz')
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
