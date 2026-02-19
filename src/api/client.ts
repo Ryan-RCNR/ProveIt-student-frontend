@@ -168,11 +168,12 @@ export async function submitQuiz(
 }
 
 /**
- * Submit quiz with a short timeout -- for forced/lockdown submits.
- * Waits up to 8 seconds for the backend to respond, then navigates
- * regardless. This ensures the request is actually dispatched and
- * has time to reach the server, unlike fire-and-forget beacons
- * which can silently fail on cross-origin requests.
+ * Submit quiz for forced/lockdown submits.
+ * Fires the request and waits 2 seconds for it to reach the server,
+ * then resolves so the caller can navigate away. The backend commits
+ * the submission immediately (before AI grading), so 2s is plenty.
+ * We do NOT abort the request -- the backend continues processing
+ * AI grading even after we navigate away.
  */
 export async function submitQuizForced(
   submissionId: string,
@@ -183,23 +184,18 @@ export async function submitQuizForced(
   wasForced: boolean,
   lockdownForced: boolean
 ): Promise<void> {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 8000)
+  // Fire the request (don't await the full response -- AI grading takes seconds)
+  api.post(`/submissions/${submissionId}/quiz`, {
+    session_token: sessionToken,
+    answers,
+    outline_responses: outlineResponses,
+    lockdown_events: lockdownEvents,
+    was_forced: wasForced,
+    lockdown_forced: lockdownForced,
+  }).catch(() => {})
 
-  try {
-    await api.post(`/submissions/${submissionId}/quiz`, {
-      session_token: sessionToken,
-      answers,
-      outline_responses: outlineResponses,
-      lockdown_events: lockdownEvents,
-      was_forced: wasForced,
-      lockdown_forced: lockdownForced,
-    }, { signal: controller.signal })
-  } catch {
-    // Timeout or network error -- the request was sent, move on
-  } finally {
-    clearTimeout(timeout)
-  }
+  // Wait 2s for the request to reach the server and commit the first phase
+  await new Promise((resolve) => setTimeout(resolve, 2000))
 }
 
 export async function requestEntry(
