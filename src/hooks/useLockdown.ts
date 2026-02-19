@@ -86,11 +86,19 @@ export function useLockdown({
   /** Wall-clock start of countdown (prevents JS-freeze exploits). */
   const countdownStartRef = useRef(0)
 
+  // Keep callbacks in refs so they never go stale inside event handlers / intervals.
+  // Without this, useCallback dependency chains cause triggerAutoSubmit to capture
+  // old versions of onAutoSubmit, silently breaking the auto-submit.
+  const onAutoSubmitRef = useRef(onAutoSubmit)
+  const onViolationRef = useRef(onViolation)
+  useEffect(() => { onAutoSubmitRef.current = onAutoSubmit }, [onAutoSubmit])
+  useEffect(() => { onViolationRef.current = onViolation }, [onViolation])
+
   const triggerAutoSubmit = useCallback(() => {
     if (autoSubmittedRef.current) return
     autoSubmittedRef.current = true
-    onAutoSubmit()
-  }, [onAutoSubmit])
+    onAutoSubmitRef.current()
+  }, [])
 
   const clearCountdown = useCallback(() => {
     if (countdownIntervalRef.current) {
@@ -135,7 +143,7 @@ export function useLockdown({
       }])
 
       // Report to backend in real-time so teacher dashboard sees it
-      onViolation?.(type)
+      onViolationRef.current?.(type)
 
       if (INSTANT_VIOLATIONS.has(type)) {
         triggerAutoSubmit()
@@ -152,7 +160,7 @@ export function useLockdown({
         startCountdown()
       }
     },
-    [triggerAutoSubmit, startCountdown, onViolation]
+    [triggerAutoSubmit, startCountdown]
   )
 
   /**
