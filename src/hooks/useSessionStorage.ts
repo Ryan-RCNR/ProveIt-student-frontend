@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import type { QuizQuestion } from '../api/client'
 
-export function useSessionStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+export function useSessionStorage<T>(key: string, initialValue: T): [T, (value: T | ((prev: T) => T)) => void] {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
       const item = window.sessionStorage.getItem(key)
@@ -12,14 +12,17 @@ export function useSessionStorage<T>(key: string, initialValue: T): [T, (value: 
     }
   })
 
-  const setValue = (value: T) => {
+  const setValue = useCallback((value: T | ((prev: T) => T)) => {
     try {
-      setStoredValue(value)
-      window.sessionStorage.setItem(key, JSON.stringify(value))
+      setStoredValue((prev) => {
+        const nextValue = typeof value === 'function' ? (value as (prev: T) => T)(prev) : value
+        window.sessionStorage.setItem(key, JSON.stringify(nextValue))
+        return nextValue
+      })
     } catch (error) {
       console.error('Error writing to sessionStorage:', error)
     }
-  }
+  }, [key])
 
   return [storedValue, setValue]
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Clock, XCircle, ArrowLeft } from 'lucide-react'
 import { pollEntryStatus } from '../api/client'
@@ -12,19 +12,46 @@ export function WaitingRoom() {
 
   const [denied, setDenied] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // Prevent the guard from redirecting to / after we've handled approval
+  const resolvedRef = useRef(false)
 
   const entryRequestId = sessionStorage.getItem('proveit_entry_request_id')
 
-  // Guard: redirect to entry if no entry request ID
+  // Guard: redirect to entry if no entry request ID (and not already resolved)
   useEffect(() => {
-    if (!entryRequestId) {
+    if (!entryRequestId && !resolvedRef.current) {
       navigate('/')
     }
   }, [entryRequestId, navigate])
 
+  // Stable handler for approval -- uses functional updater so it doesn't depend on session
+  const handleApproval = useCallback((data: {
+    assignment_id?: string
+    assignment_name?: string
+    instructions?: string | null
+    outline_fields?: { label: string; order: number }[]
+    time_limit_minutes?: number
+    question_count?: number
+  }) => {
+    resolvedRef.current = true
+    sessionStorage.removeItem('proveit_entry_request_id')
+
+    setSession((prev) => ({
+      ...prev,
+      assignmentId: data.assignment_id,
+      assignmentName: data.assignment_name,
+      instructions: data.instructions,
+      outlineFields: data.outline_fields || [],
+      timeLimitMinutes: data.time_limit_minutes,
+      questionCount: data.question_count,
+    }))
+
+    navigate('/instructions')
+  }, [setSession, navigate])
+
   // Poll for approval
   useEffect(() => {
-    if (!entryRequestId) return
+    if (!entryRequestId || resolvedRef.current) return
 
     const poll = async () => {
       try {
@@ -32,21 +59,10 @@ export function WaitingRoom() {
 
         if (data.status === 'approved') {
           if (intervalRef.current) clearInterval(intervalRef.current)
-          sessionStorage.removeItem('proveit_entry_request_id')
-
-          setSession({
-            ...session,
-            assignmentId: data.assignment_id,
-            assignmentName: data.assignment_name,
-            instructions: data.instructions,
-            outlineFields: data.outline_fields || [],
-            timeLimitMinutes: data.time_limit_minutes,
-            questionCount: data.question_count,
-          })
-
-          navigate('/instructions')
+          handleApproval(data)
         } else if (data.status === 'denied') {
           if (intervalRef.current) clearInterval(intervalRef.current)
+          resolvedRef.current = true
           sessionStorage.removeItem('proveit_entry_request_id')
           setDenied(true)
         }
@@ -62,9 +78,9 @@ export function WaitingRoom() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [entryRequestId, navigate, session, setSession])
+  }, [entryRequestId, handleApproval])
 
-  if (!entryRequestId && !denied) {
+  if (!entryRequestId && !denied && !resolvedRef.current) {
     return null
   }
 
@@ -85,6 +101,7 @@ export function WaitingRoom() {
 
             <button
               onClick={() => {
+                resolvedRef.current = false
                 setDenied(false)
                 navigate('/')
               }}
