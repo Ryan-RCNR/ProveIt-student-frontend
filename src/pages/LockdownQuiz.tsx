@@ -67,10 +67,13 @@ export function LockdownQuiz() {
       count: v.count,
     }))
 
-    // For forced submits, add a hard timeout so we never hang on "Submitting..."
-    // If the API doesn't respond in 10s, navigate to /complete anyway.
-    const FORCED_SUBMIT_TIMEOUT_MS = 10_000
+    const navigateToComplete = (status: string) => {
+      sessionStorage.setItem('proveit_submit_status', status)
+      sessionStorage.removeItem('proveit_autosave')
+      navigate('/complete')
+    }
 
+    // Fire the API call
     const submitPromise = submitQuiz(
       session.submissionId!,
       session.sessionToken!,
@@ -81,29 +84,11 @@ export function LockdownQuiz() {
       lockdownForced
     )
 
-    const navigateToComplete = (status: string) => {
-      sessionStorage.setItem('proveit_submit_status', status)
-      sessionStorage.removeItem('proveit_autosave')
-      navigate('/complete')
-    }
-
     if (forced) {
-      // Race the API call against a timeout — never hang on a forced submit
-      const timeoutPromise = new Promise<'timeout'>((resolve) =>
-        setTimeout(() => resolve('timeout'), FORCED_SUBMIT_TIMEOUT_MS)
-      )
-
-      try {
-        const result = await Promise.race([submitPromise, timeoutPromise])
-        if (result === 'timeout') {
-          navigateToComplete(lockdownForced ? 'locked_out' : 'completed')
-        } else {
-          navigateToComplete(result.status)
-        }
-      } catch {
-        // API error on forced submit — navigate to complete page anyway
-        navigateToComplete(lockdownForced ? 'locked_out' : 'completed')
-      }
+      // Navigate away immediately -- don't make the student wait for grading/AI
+      navigateToComplete(lockdownForced ? 'locked_out' : 'completed')
+      // Let the API call finish in the background (ignore result)
+      submitPromise.catch(() => {})
       return
     }
 
