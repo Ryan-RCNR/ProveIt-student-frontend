@@ -56,9 +56,9 @@ export function PaperSubmit() {
       return
     }
 
-    // Confirm before submitting -- once submitted, the timed quiz begins immediately
+    // Confirm before submitting -- quiz generation begins immediately
     const confirmed = confirm(
-      'Are you sure you want to submit your paper? Once submitted, the timed quiz will begin immediately and cannot be restarted.'
+      'Are you sure you want to submit your paper? Once submitted, a quiz will be generated from your paper and cannot be restarted.'
     )
     if (!confirmed) return
 
@@ -85,11 +85,9 @@ export function PaperSubmit() {
         ...session,
         submissionId: response.submission_id,
         sessionToken: response.session_token,
-        quizQuestions: response.quiz_questions,
-        startedAt: response.started_at,
       })
 
-      navigate('/quiz')
+      navigate('/quiz-loading')
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setError(err.response?.data?.detail || 'Failed to submit paper. Please try again.')
@@ -219,18 +217,18 @@ export function PaperSubmit() {
           {loading ? (
             <>
               <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-midnight"></div>
-              Processing...
+              Submitting...
             </>
           ) : (
             <>
-              Continue to Quiz
+              Submit Paper
               <ArrowRight className="w-5 h-5" />
             </>
           )}
         </button>
 
         <p className="text-center text-sm text-brand/30 mt-4">
-          Once you continue, the timed quiz will begin
+          Once you submit, a personalized quiz will be generated from your paper
         </p>
       </div>
     </div>

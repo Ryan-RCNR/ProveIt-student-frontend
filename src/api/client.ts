@@ -95,9 +95,15 @@ export interface QuizQuestion {
 export interface PaperSubmitResponse {
   submission_id: string
   session_token: string
-  quiz_questions: QuizQuestion[]
-  time_limit_minutes: number
-  started_at: string
+  quiz_status: string
+}
+
+export interface QuizReadyResponse {
+  submission_id: string
+  quiz_status: 'generating' | 'ready' | 'failed'
+  quiz_questions?: QuizQuestion[]
+  time_limit_minutes?: number
+  started_at?: string
 }
 
 export interface QuizSubmitResponse {
@@ -208,6 +214,13 @@ export async function pollEntryStatus(
   entryRequestId: string
 ): Promise<EntryRequestStatusResponse> {
   const response = await api.get(`/entry-requests/${entryRequestId}/status`)
+  return response.data
+}
+
+export async function pollQuizReady(
+  submissionId: string
+): Promise<QuizReadyResponse> {
+  const response = await api.get(`/submissions/${submissionId}/quiz-ready`)
   return response.data
 }
 
