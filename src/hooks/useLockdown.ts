@@ -186,12 +186,18 @@ export function useLockdown({
       setIsFullscreen(true)
       clearCountdown()
 
-      // Brief grace period while browser settles into fullscreen
-      graceRef.current = true
-      setTimeout(() => {
-        graceRef.current = false
-        lastViolationRef.current = 0
-      }, gracePeriodMs)
+      // Reset dedup timer so the next exit isn't suppressed
+      lastViolationRef.current = 0
+
+      // Brief grace period while browser settles into fullscreen,
+      // but ONLY on initial entry. After a violation has occurred,
+      // no grace -- exiting again means instant auto-submit.
+      if (envViolationCountRef.current === 0) {
+        graceRef.current = true
+        setTimeout(() => {
+          graceRef.current = false
+        }, gracePeriodMs)
+      }
     } catch {
       setIsFullscreen(false)
     }
