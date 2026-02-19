@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, Check, Monitor, Maximize, Shield } from 'lucide-react'
 import axios from 'axios'
-import { submitQuiz, submitQuizBeacon, reportLockdownEvent, LockdownEvent, QuizQuestion as QuizQuestionType } from '../api/client'
+import { submitQuiz, submitQuizForced, reportLockdownEvent, LockdownEvent, QuizQuestion as QuizQuestionType } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
 import { useLockdown, Violation } from '../hooks/useLockdown'
 import { QuizTimer } from '../components/QuizTimer'
@@ -74,8 +74,9 @@ export function LockdownQuiz() {
     }
 
     if (forced) {
-      // Use beacon/keepalive so the request survives page navigation
-      submitQuizBeacon(
+      // Wait for the request to actually reach the server (up to 8s timeout)
+      // then navigate -- ensures the submission isn't lost
+      await submitQuizForced(
         session.submissionId!,
         session.sessionToken!,
         answersList,
@@ -84,7 +85,6 @@ export function LockdownQuiz() {
         forced,
         lockdownForced
       )
-      // Navigate away immediately -- don't make the student wait for grading/AI
       navigateToComplete(lockdownForced ? 'locked_out' : 'completed')
       return
     }

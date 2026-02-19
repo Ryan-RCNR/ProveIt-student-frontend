@@ -168,11 +168,13 @@ export async function submitQuiz(
 }
 
 /**
- * Fire-and-forget quiz submission that survives page navigation.
- * Uses fetch with keepalive so the request completes even after
- * the student is navigated to the completion page.
+ * Submit quiz with a short timeout -- for forced/lockdown submits.
+ * Waits up to 8 seconds for the backend to respond, then navigates
+ * regardless. This ensures the request is actually dispatched and
+ * has time to reach the server, unlike fire-and-forget beacons
+ * which can silently fail on cross-origin requests.
  */
-export function submitQuizBeacon(
+export async function submitQuizForced(
   submissionId: string,
   sessionToken: string,
   answers: { question_id: string; answer: string }[],
@@ -180,33 +182,23 @@ export function submitQuizBeacon(
   lockdownEvents: LockdownEvent[],
   wasForced: boolean,
   lockdownForced: boolean
-): void {
-  const url = `${API_URL}/api/proveit/submissions/${submissionId}/quiz`
-  const body = JSON.stringify({
-    session_token: sessionToken,
-    answers,
-    outline_responses: outlineResponses,
-    lockdown_events: lockdownEvents,
-    was_forced: wasForced,
-    lockdown_forced: lockdownForced,
-  })
+): Promise<void> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 8000)
 
-  // Try fetch with keepalive first (survives navigation)
   try {
-    fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-      keepalive: true,
-    }).catch(() => {})
+    await api.post(`/submissions/${submissionId}/quiz`, {
+      session_token: sessionToken,
+      answers,
+      outline_responses: outlineResponses,
+      lockdown_events: lockdownEvents,
+      was_forced: wasForced,
+      lockdown_forced: lockdownForced,
+    }, { signal: controller.signal })
   } catch {
-    // Fallback: sendBeacon (limited to 64KB but guaranteed delivery)
-    try {
-      navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }))
-    } catch {
-      // Last resort: fire normal axios call and hope it completes
-      api.post(`/submissions/${submissionId}/quiz`, JSON.parse(body)).catch(() => {})
-    }
+    // Timeout or network error -- the request was sent, move on
+  } finally {
+    clearTimeout(timeout)
   }
 }
 
