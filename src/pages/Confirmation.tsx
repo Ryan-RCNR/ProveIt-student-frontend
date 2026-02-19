@@ -11,7 +11,7 @@ export function Confirmation() {
     const timer = setTimeout(() => {
       clearSession()
       sessionStorage.removeItem('proveit_submit_status')
-    }, 10000) // Clear after 10 seconds
+    }, 30000) // Clear after 30 seconds
 
     return () => clearTimeout(timer)
   }, [clearSession])

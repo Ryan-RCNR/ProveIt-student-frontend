@@ -19,6 +19,7 @@ export function LockdownQuiz() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [quizStarted, setQuizStarted] = useState(false)
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false)
 
   // Proper ref for violations -- survives re-renders, always current
   const violationsRef = useRef<Violation[]>([])
@@ -222,7 +223,7 @@ export function LockdownQuiz() {
           </div>
 
           <button
-            onClick={() => handleSubmit(false)}
+            onClick={() => setShowSubmitConfirm(true)}
             disabled={loading}
             className="px-4 py-2 btn-ice rounded-lg disabled:opacity-50"
           >
@@ -265,6 +266,45 @@ export function LockdownQuiz() {
               <Maximize className="w-5 h-5" />
               Re-enter Fullscreen
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Submit Confirmation */}
+      {showSubmitConfirm && (
+        <div className="fixed inset-0 z-[90] bg-midnight/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="glass-card rounded-xl p-8 max-w-md w-full text-center">
+            <Check className="w-12 h-12 text-brand mx-auto mb-4" />
+            <h2 className="text-xl font-display text-brand mb-2">Submit Your Quiz?</h2>
+            <p className="text-brand/50 mb-2">
+              You've answered {answeredCount} of {totalItemsToAnswer} questions.
+            </p>
+            {answeredCount < totalItemsToAnswer && (
+              <p className="text-sm text-yellow-400 mb-6">
+                You have {totalItemsToAnswer - answeredCount} unanswered question{totalItemsToAnswer - answeredCount !== 1 ? 's' : ''}.
+              </p>
+            )}
+            {answeredCount >= totalItemsToAnswer && (
+              <p className="text-sm text-brand/40 mb-6">All questions answered.</p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowSubmitConfirm(false)}
+                className="flex-1 px-4 py-3 rounded-lg border border-brand/20 text-brand/70 hover:bg-brand/5 transition-colors"
+              >
+                Go Back
+              </button>
+              <button
+                onClick={() => {
+                  setShowSubmitConfirm(false)
+                  handleSubmit(false)
+                }}
+                disabled={loading}
+                className="flex-1 px-4 py-3 btn-ice rounded-lg disabled:opacity-50"
+              >
+                {loading ? 'Submitting...' : 'Submit'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -331,7 +371,7 @@ export function LockdownQuiz() {
           {/* Submit Button */}
           <div className="pt-6">
             <button
-              onClick={() => handleSubmit(false)}
+              onClick={() => setShowSubmitConfirm(true)}
               disabled={loading}
               className="w-full px-6 py-4 btn-ice rounded-lg disabled:opacity-50 text-lg"
             >
