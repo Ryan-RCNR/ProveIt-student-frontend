@@ -76,18 +76,33 @@ export function LockdownQuiz() {
 
     if (forced) {
       setForcedSubmitting(true)
-      // Wait for the request to actually reach the server (up to 8s timeout)
-      // then navigate -- ensures the submission isn't lost
-      await submitQuizForced(
-        session.submissionId!,
-        session.sessionToken!,
-        answersList,
-        outlineList,
-        lockdownEvents,
-        forced,
-        lockdownForced
-      )
-      navigateToComplete(lockdownForced ? 'locked_out' : 'completed')
+      const status = lockdownForced ? 'locked_out' : 'completed'
+      try {
+        // Race the submit against a 10s safety timeout.
+        // The backend returns immediately (AI grading runs in background),
+        // so this should resolve in <2s. If it doesn't (network issue,
+        // server error), we still navigate -- the data was already saved
+        // by real-time lockdown event reporting.
+        await Promise.race([
+          submitQuizForced(
+            session.submissionId!,
+            session.sessionToken!,
+            answersList,
+            outlineList,
+            lockdownEvents,
+            forced,
+            lockdownForced
+          ),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000)),
+        ])
+      } catch {
+        // Even if the submit fails or times out, navigate away.
+        // The submission data (answers, status) is committed server-side
+        // before the response is sent, so reaching here likely means a
+        // network issue rather than data loss.
+        console.warn('Forced submit failed or timed out, navigating anyway')
+      }
+      navigateToComplete(status)
       return
     }
 
