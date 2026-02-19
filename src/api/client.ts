@@ -63,6 +63,25 @@ export interface VerifyCodeResponse {
   outline_fields: OutlineField[]
   time_limit_minutes: number
   question_count: number
+  require_entry_approval: boolean
+}
+
+export interface EntryRequestResponse {
+  entry_request_id: string
+  status: 'pending' | 'approved' | 'denied'
+  assignment_name: string
+  student_name: string
+}
+
+export interface EntryRequestStatusResponse {
+  entry_request_id: string
+  status: 'pending' | 'approved' | 'denied'
+  assignment_id?: string
+  assignment_name?: string
+  instructions?: string | null
+  outline_fields?: OutlineField[]
+  time_limit_minutes?: number
+  question_count?: number
 }
 
 export interface QuizQuestion {
@@ -145,5 +164,23 @@ export async function submitQuiz(
     was_forced: wasForced,
     lockdown_forced: lockdownForced,
   })
+  return response.data
+}
+
+export async function requestEntry(
+  accessCode: string,
+  studentName: string
+): Promise<EntryRequestResponse> {
+  const response = await api.post('/entry-requests', {
+    access_code: accessCode,
+    student_name: studentName,
+  })
+  return response.data
+}
+
+export async function pollEntryStatus(
+  entryRequestId: string
+): Promise<EntryRequestStatusResponse> {
+  const response = await api.get(`/entry-requests/${entryRequestId}/status`)
   return response.data
 }

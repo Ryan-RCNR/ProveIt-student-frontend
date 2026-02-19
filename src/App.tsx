@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Entry } from './pages/Entry'
+import { WaitingRoom } from './pages/WaitingRoom'
 import { Instructions } from './pages/Instructions'
 import { PaperSubmit } from './pages/PaperSubmit'
 import { LockdownQuiz } from './pages/LockdownQuiz'
@@ -11,6 +12,7 @@ function App() {
     <ErrorBoundary>
       <Routes>
         <Route path="/" element={<Entry />} />
+        <Route path="/waiting" element={<WaitingRoom />} />
         <Route path="/instructions" element={<Instructions />} />
         <Route path="/submit" element={<PaperSubmit />} />
         <Route path="/quiz" element={<LockdownQuiz />} />

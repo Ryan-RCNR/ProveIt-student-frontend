@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileCheck, ArrowRight } from 'lucide-react'
-import { verifyCode } from '../api/client'
+import { verifyCode, requestEntry } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
 
 export function Entry() {
@@ -36,6 +36,21 @@ export function Entry() {
         }
       } catch { /* ignore parse errors */ }
 
+      // If teacher requires approval, create entry request and go to waiting room
+      if (data.require_entry_approval) {
+        const entryData = await requestEntry(accessCode.trim(), studentName.trim())
+        setSession({
+          studentName: studentName.trim(),
+          assignmentName: entryData.assignment_name,
+        })
+        sessionStorage.setItem('proveit_entry_request_id', entryData.entry_request_id)
+
+        // If already approved (idempotent re-request), the waiting room will detect it immediately
+        navigate('/waiting')
+        return
+      }
+
+      // No approval required -- proceed directly
       setSession({
         assignmentId: data.assignment_id,
         assignmentName: data.assignment_name,
@@ -50,6 +65,10 @@ export function Entry() {
     } catch (err: any) {
       if (err.response?.status === 404) {
         setError('Invalid or expired access code. Please check with your teacher.')
+      } else if (err.response?.status === 403) {
+        setError(err.response.data?.detail || 'Your access has been locked. Please contact your teacher.')
+      } else if (err.response?.status === 400) {
+        setError(err.response.data?.detail || 'A submission already exists for this name.')
       } else {
         setError('Failed to verify code. Please try again.')
       }
