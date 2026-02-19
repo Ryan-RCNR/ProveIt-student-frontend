@@ -184,3 +184,15 @@ export async function pollEntryStatus(
   const response = await api.get(`/entry-requests/${entryRequestId}/status`)
   return response.data
 }
+
+export async function reportLockdownEvent(
+  submissionId: string,
+  sessionToken: string,
+  eventType: LockdownEvent['type']
+): Promise<void> {
+  // Fire-and-forget -- don't block the UI or fail the quiz if this call fails
+  await api.post(`/submissions/${submissionId}/lockdown-event`, {
+    session_token: sessionToken,
+    event_type: eventType,
+  })
+}

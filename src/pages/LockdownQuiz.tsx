@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, Check, Monitor, Maximize, Shield } from 'lucide-react'
 import axios from 'axios'
-import { submitQuiz, LockdownEvent, QuizQuestion as QuizQuestionType } from '../api/client'
+import { submitQuiz, reportLockdownEvent, LockdownEvent, QuizQuestion as QuizQuestionType } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
 import { useLockdown, Violation } from '../hooks/useLockdown'
 import { QuizTimer } from '../components/QuizTimer'
@@ -126,6 +126,17 @@ export function LockdownQuiz() {
     handleSubmit(true, true) // forced + lockdown-caused
   }, [handleSubmit])
 
+  // Report each violation to the backend in real-time (fire-and-forget)
+  const handleViolation = useCallback((type: string) => {
+    if (session.submissionId && session.sessionToken) {
+      reportLockdownEvent(
+        session.submissionId,
+        session.sessionToken,
+        type as LockdownEvent['type']
+      ).catch(() => {}) // Silently ignore -- violations are also sent at final submission
+    }
+  }, [session.submissionId, session.sessionToken])
+
   const handleTimeUp = useCallback(() => {
     handleSubmit(true, false) // forced by timer, NOT lockdown
   }, [handleSubmit])
@@ -139,6 +150,7 @@ export function LockdownQuiz() {
     enterFullscreen,
   } = useLockdown({
     onAutoSubmit: handleAutoSubmit,
+    onViolation: handleViolation,
     enabled: quizStarted,
   })
 

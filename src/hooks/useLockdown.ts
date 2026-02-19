@@ -40,6 +40,7 @@ interface UseLockdownOptions {
   enabled: boolean
   gracePeriodMs?: number
   onAutoSubmit: () => void
+  onViolation?: (type: string) => void
 }
 
 interface UseLockdownReturn {
@@ -66,6 +67,7 @@ export function useLockdown({
   enabled,
   gracePeriodMs = 3000,
   onAutoSubmit,
+  onViolation,
 }: UseLockdownOptions): UseLockdownReturn {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [violations, setViolations] = useState<Violation[]>([])
@@ -132,6 +134,9 @@ export function useLockdown({
         count: eventCountsRef.current[type],
       }])
 
+      // Report to backend in real-time so teacher dashboard sees it
+      onViolation?.(type)
+
       if (INSTANT_VIOLATIONS.has(type)) {
         triggerAutoSubmit()
         return
@@ -147,7 +152,7 @@ export function useLockdown({
         startCountdown()
       }
     },
-    [triggerAutoSubmit, startCountdown]
+    [triggerAutoSubmit, startCountdown, onViolation]
   )
 
   /**
