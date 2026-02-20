@@ -93,7 +93,7 @@ export function Entry() {
               <input
                 type="text"
                 value={studentName}
-                onChange={(e) => setStudentName(e.target.value)}
+                onChange={(e) => { setStudentName(e.target.value); setError(null) }}
                 placeholder="Enter your full name"
                 className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-white placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors"
                 required
@@ -107,7 +107,7 @@ export function Entry() {
               <input
                 type="text"
                 value={accessCode}
-                onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
+                onChange={(e) => { setAccessCode(e.target.value.toUpperCase()); setError(null) }}
                 placeholder="e.g., ABCD-1234"
                 className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-white placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors font-mono text-lg tracking-wider text-center"
                 required

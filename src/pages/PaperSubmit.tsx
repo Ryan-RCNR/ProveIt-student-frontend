@@ -159,7 +159,7 @@ export function PaperSubmit() {
               />
               <div className="flex justify-between mt-2 text-sm text-brand/30">
                 <span>{paperText.length} characters</span>
-                <span>~{Math.round(paperText.split(/\s+/).length)} words</span>
+                <span>~{paperText.trim() ? paperText.trim().split(/\s+/).length : 0} words</span>
               </div>
             </div>
           ) : (
@@ -227,8 +227,14 @@ export function PaperSubmit() {
           )}
         </button>
 
-        <p className="text-center text-sm text-brand/30 mt-4">
-          Once you submit, a personalized quiz will be generated from your paper
+        <p className="text-center text-sm mt-4">
+          {mode === 'paste' && paperText.length > 0 && paperText.trim().length < 100 ? (
+            <span className="text-yellow-400">Your paper must be at least 100 characters ({100 - paperText.trim().length} more needed)</span>
+          ) : mode === 'upload' && !selectedFile ? (
+            <span className="text-brand/30">Select a file to upload</span>
+          ) : (
+            <span className="text-brand/30">Once you submit, a personalized quiz will be generated from your paper</span>
+          )}
         </p>
       </div>
     </div>
