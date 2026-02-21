@@ -47,8 +47,14 @@ export function QuizLoading() {
           if (intervalRef.current) clearInterval(intervalRef.current)
         }
         // "generating" -- keep polling
-      } catch {
-        // Network hiccup -- keep polling, don't show error for transient failures
+      } catch (err: any) {
+        if (err.response?.status === 410) {
+          // Assignment was closed by teacher while quiz was generating
+          setError('This assignment has been closed by your teacher.')
+          if (intervalRef.current) clearInterval(intervalRef.current)
+          return
+        }
+        // Other network hiccups -- keep polling
       }
     }
 

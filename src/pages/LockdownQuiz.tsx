@@ -100,7 +100,6 @@ export function LockdownQuiz() {
         // The submission data (answers, status) is committed server-side
         // before the response is sent, so reaching here likely means a
         // network issue rather than data loss.
-        console.warn('Forced submit failed or timed out, navigating anyway')
       }
       navigateToComplete(status)
       return

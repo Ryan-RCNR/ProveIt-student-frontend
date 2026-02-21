@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Clock, XCircle, ArrowLeft } from 'lucide-react'
+import { Clock, XCircle, ArrowLeft, Lock } from 'lucide-react'
 import { pollEntryStatus } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
 
@@ -11,6 +11,7 @@ export function WaitingRoom() {
   const { session, setSession } = useSession()
 
   const [denied, setDenied] = useState(false)
+  const [closed, setClosed] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   // Prevent the guard from redirecting to / after we've handled approval
   const resolvedRef = useRef(false)
@@ -66,8 +67,15 @@ export function WaitingRoom() {
           sessionStorage.removeItem('proveit_entry_request_id')
           setDenied(true)
         }
-      } catch {
-        // Silently retry on network errors
+      } catch (err: any) {
+        if (err.response?.status === 410) {
+          // Assignment was closed by teacher
+          if (intervalRef.current) clearInterval(intervalRef.current)
+          resolvedRef.current = true
+          sessionStorage.removeItem('proveit_entry_request_id')
+          setClosed(true)
+        }
+        // Other errors: silently retry on next poll
       }
     }
 
@@ -80,8 +88,40 @@ export function WaitingRoom() {
     }
   }, [entryRequestId, handleApproval])
 
-  if (!entryRequestId && !denied && !resolvedRef.current) {
+  if (!entryRequestId && !denied && !closed && !resolvedRef.current) {
     return null
+  }
+
+  if (closed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md text-center">
+          <div className="glass-card rounded-xl p-8">
+            <Lock className="w-16 h-16 text-brand/40 mx-auto mb-4" />
+
+            <h1 className="text-2xl font-display text-brand mb-2">
+              Assignment Closed
+            </h1>
+
+            <p className="text-brand/50 mb-6">
+              Your teacher has closed this assignment. No new entries are being accepted.
+            </p>
+
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center justify-center gap-2 w-full px-6 py-3 btn-ice rounded-lg"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Back to Entry
+            </button>
+          </div>
+
+          <p className="text-xs text-brand/30 mt-6">
+            RCNR Teacher Toolbox | ProveIt
+          </p>
+        </div>
+      </div>
+    )
   }
 
   if (denied) {
