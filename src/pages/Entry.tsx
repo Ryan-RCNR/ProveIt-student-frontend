@@ -24,7 +24,7 @@ export function Entry() {
     setError(null)
 
     try {
-      const data = await verifyCode(accessCode.trim())
+      const data = await verifyCode(accessCode.trim(), studentName.trim())
 
       // If teacher requires approval, create entry request and go to waiting room
       if (data.require_entry_approval) {

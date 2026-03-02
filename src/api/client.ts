@@ -119,8 +119,11 @@ export interface LockdownEvent {
 }
 
 // API functions
-export async function verifyCode(accessCode: string): Promise<VerifyCodeResponse> {
-  const response = await api.post('/verify-code', { access_code: accessCode })
+export async function verifyCode(accessCode: string, studentName?: string): Promise<VerifyCodeResponse> {
+  const response = await api.post('/verify-code', {
+    access_code: accessCode,
+    student_name: studentName || undefined,
+  })
   return response.data
 }
 

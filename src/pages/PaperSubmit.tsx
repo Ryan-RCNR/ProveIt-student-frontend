@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Upload, FileText, ArrowRight, X } from 'lucide-react'
+import { Upload, FileText, ArrowRight, X, AlertTriangle } from 'lucide-react'
 import axios from 'axios'
 import { submitPaper, submitPaperFile } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
@@ -15,6 +15,7 @@ export function PaperSubmit() {
   const [mode, setMode] = useState<'paste' | 'upload'>('paste')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   useEffect(() => {
     if (!session.assignmentId || !session.studentName) {
@@ -45,7 +46,7 @@ export function PaperSubmit() {
     setError(null)
   }
 
-  const handleSubmit = async () => {
+  const handleSubmitClick = () => {
     if (mode === 'paste' && paperText.trim().length < 100) {
       setError('Your paper must be at least 100 characters')
       return
@@ -56,12 +57,11 @@ export function PaperSubmit() {
       return
     }
 
-    // Confirm before submitting -- quiz generation begins immediately
-    const confirmed = confirm(
-      'Are you sure you want to submit your paper? Once submitted, a quiz will be generated from your paper and cannot be restarted.'
-    )
-    if (!confirmed) return
+    setShowConfirm(true)
+  }
 
+  const handleConfirmedSubmit = async () => {
+    setShowConfirm(false)
     setLoading(true)
     setError(null)
 
@@ -210,7 +210,7 @@ export function PaperSubmit() {
 
         {/* Submit Button */}
         <button
-          onClick={handleSubmit}
+          onClick={handleSubmitClick}
           disabled={loading || (mode === 'paste' ? paperText.length < 100 : !selectedFile)}
           className="w-full flex items-center justify-center gap-2 px-6 py-4 btn-ice rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-lg"
         >
@@ -237,6 +237,33 @@ export function PaperSubmit() {
           )}
         </p>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="glass-card rounded-xl p-8 max-w-md w-full text-center">
+            <AlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
+            <h2 className="text-xl font-display text-brand mb-3">Submit Your Paper?</h2>
+            <p className="text-brand/60 text-sm mb-6">
+              Once submitted, a quiz will be generated from your paper. You cannot change your paper or restart the quiz after this point.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="flex-1 py-3 rounded-lg bg-surface-light text-brand/70 hover:bg-surface-lighter transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmedSubmit}
+                className="flex-1 py-3 rounded-lg btn-ice font-medium"
+              >
+                Submit Paper
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
