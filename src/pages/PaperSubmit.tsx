@@ -90,7 +90,12 @@ export function PaperSubmit() {
       navigate('/quiz-loading')
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.detail || 'Failed to submit paper. Please try again.')
+        const status = err.response?.status
+        if (status === 422) {
+          setError('Your paper is too long to process. Please shorten it to under 100,000 characters and try again.')
+        } else {
+          setError(err.response?.data?.detail || 'Failed to submit paper. Please try again.')
+        }
       } else {
         setError('An unexpected error occurred. Please try again.')
       }
@@ -155,11 +160,14 @@ export function PaperSubmit() {
                 onChange={(e) => setPaperText(e.target.value)}
                 placeholder="Paste your essay or paper here..."
                 rows={15}
+                maxLength={100000}
                 className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-white placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
               />
-              <div className="flex justify-between mt-2 text-sm text-brand/30">
-                <span>{paperText.length} characters</span>
-                <span>~{paperText.trim() ? paperText.trim().split(/\s+/).length : 0} words</span>
+              <div className="flex justify-between mt-2 text-sm">
+                <span className={paperText.length > 95000 ? 'text-amber-400' : 'text-brand/30'}>
+                  {paperText.length.toLocaleString()} / 100,000 characters
+                </span>
+                <span className="text-brand/30">~{paperText.trim() ? paperText.trim().split(/\s+/).length.toLocaleString() : 0} words</span>
               </div>
             </div>
           ) : (
