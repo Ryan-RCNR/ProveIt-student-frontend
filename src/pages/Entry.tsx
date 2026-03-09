@@ -1,17 +1,60 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FileCheck, ArrowRight } from 'lucide-react'
-import { verifyCode, requestEntry } from '../api/client'
+import { FileCheck, ArrowRight, Loader2 } from 'lucide-react'
+import { verifyCode, requestEntry, pollQuizReady } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
 
 export function Entry() {
   const navigate = useNavigate()
-  const { setSession } = useSession()
+  const { session, setSession, clearSession } = useSession()
 
   const [studentName, setStudentName] = useState('')
   const [accessCode, setAccessCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [recovering, setRecovering] = useState(true)
+
+  // Session recovery: check for existing session on page load
+  useEffect(() => {
+    const entryRequestId = sessionStorage.getItem('proveit_entry_request_id')
+
+    if (session.submissionId && session.sessionToken) {
+      // Student has already submitted a paper — check quiz status
+      pollQuizReady(session.submissionId)
+        .then((res) => {
+          if (res.quiz_status === 'ready') {
+            navigate('/quiz')
+          } else if (res.quiz_status === 'generating') {
+            navigate('/quiz-loading')
+          } else {
+            navigate('/complete')
+          }
+        })
+        .catch(() => {
+          clearSession()
+          sessionStorage.removeItem('proveit_entry_request_id')
+          sessionStorage.removeItem('proveit_student_token')
+        })
+        .finally(() => setRecovering(false))
+      return
+    }
+
+    if (session.assignmentId) {
+      // Has assignment data but no submission — go to instructions
+      navigate('/instructions')
+      setRecovering(false)
+      return
+    }
+
+    if (entryRequestId) {
+      // In approval flow — go to waiting room
+      navigate('/waiting')
+      setRecovering(false)
+      return
+    }
+
+    setRecovering(false)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,6 +108,19 @@ export function Entry() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (recovering) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md text-center">
+          <FileCheck className="w-16 h-16 text-brand mx-auto mb-4" />
+          <h1 className="text-3xl font-display text-brand mb-4">ProveIt</h1>
+          <Loader2 className="w-8 h-8 text-brand animate-spin mx-auto mb-4" />
+          <p className="text-brand/50">Resuming your session...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
