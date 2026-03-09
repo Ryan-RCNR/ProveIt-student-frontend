@@ -4,7 +4,7 @@ import { AlertTriangle, Check, Monitor, Maximize, Shield, Loader2 } from 'lucide
 import axios from 'axios'
 import { submitQuiz, submitQuizForced, reportLockdownEvent, LockdownEvent, QuizQuestion as QuizQuestionType } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
-import { useLockdown, Violation } from '../hooks/useLockdown'
+import { useLockdown, type Violation } from '@rcnr/lockdown'
 import { QuizTimer } from '../components/QuizTimer'
 import { QuizQuestion } from '../components/QuizQuestion'
 
@@ -62,11 +62,15 @@ export function LockdownQuiz() {
     }))
 
     // Convert violations to LockdownEvent format for the API
-    const lockdownEvents: LockdownEvent[] = violationsRef.current.map((v) => ({
-      type: v.type as LockdownEvent['type'],
-      timestamp: v.timestamp,
-      count: v.count,
-    }))
+    const counts: Record<string, number> = {}
+    const lockdownEvents: LockdownEvent[] = violationsRef.current.map((v) => {
+      counts[v.type] = (counts[v.type] || 0) + 1
+      return {
+        type: v.type as LockdownEvent['type'],
+        timestamp: new Date(v.timestamp).toISOString(),
+        count: counts[v.type],
+      }
+    })
 
     const navigateToComplete = (status: string) => {
       sessionStorage.setItem('proveit_submit_status', status)
@@ -136,12 +140,12 @@ export function LockdownQuiz() {
   }, [handleSubmit])
 
   // Report each violation to the backend in real-time (fire-and-forget)
-  const handleViolation = useCallback((type: string) => {
+  const handleViolation = useCallback((violation: Violation) => {
     if (session.submissionId && session.sessionToken) {
       reportLockdownEvent(
         session.submissionId,
         session.sessionToken,
-        type as LockdownEvent['type']
+        violation.type as LockdownEvent['type']
       ).catch(() => {}) // Silently ignore -- violations are also sent at final submission
     }
   }, [session.submissionId, session.sessionToken])
@@ -155,7 +159,7 @@ export function LockdownQuiz() {
     isFullscreen,
     isMobileDevice,
     violations,
-    countdown,
+    fullscreenCountdown,
     enterFullscreen,
   } = useLockdown({
     onAutoSubmit: handleAutoSubmit,
@@ -296,7 +300,7 @@ export function LockdownQuiz() {
       </div>
 
       {/* Lockdown violation overlay — 5s countdown to re-enter fullscreen */}
-      {countdown !== null && !isFullscreen && (
+      {fullscreenCountdown !== null && !isFullscreen && (
         <div className="fixed inset-0 z-[100] bg-midnight/95 flex items-center justify-center p-4" role="alertdialog" aria-label="Fullscreen required">
           <div className="glass-card rounded-xl p-8 max-w-md text-center">
             <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
@@ -306,7 +310,7 @@ export function LockdownQuiz() {
             </p>
             <div className="mb-6">
               <div className="text-5xl font-mono font-bold text-red-400">
-                {countdown}
+                {fullscreenCountdown}
               </div>
             </div>
             <button
@@ -321,11 +325,11 @@ export function LockdownQuiz() {
       )}
 
       {/* In-fullscreen countdown (Alt+Tab while still technically fullscreen) */}
-      {countdown !== null && isFullscreen && (
+      {fullscreenCountdown !== null && isFullscreen && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[100]" role="alert">
           <div className="flex items-center gap-3 px-6 py-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400">
             <AlertTriangle className="w-5 h-5" />
-            <span className="font-medium">Focus lost. Auto-submit in {countdown}s</span>
+            <span className="font-medium">Focus lost. Auto-submit in {fullscreenCountdown}s</span>
           </div>
         </div>
       )}
