@@ -62,7 +62,7 @@ export function Confirmation() {
 
               <div className="p-4 bg-surface-light rounded-xl mb-6">
                 <p className="text-sm text-brand/50 mb-1">Assignment</p>
-                <p className="text-white font-medium">{session.assignmentName || 'Assignment'}</p>
+                <p className="text-fg font-medium">{session.assignmentName || 'Assignment'}</p>
               </div>
             </>
           )}

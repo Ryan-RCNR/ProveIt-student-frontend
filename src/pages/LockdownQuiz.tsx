@@ -421,7 +421,7 @@ export function LockdownQuiz() {
                     <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-brand/20 text-brand rounded-full font-semibold text-sm">
                       R{index + 1}
                     </span>
-                    <p className="text-white flex-1">{field.label}</p>
+                    <p className="text-fg flex-1">{field.label}</p>
                     {outlineResponses[field.label] && (
                       <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
                     )}
@@ -437,7 +437,7 @@ export function LockdownQuiz() {
                       }
                       placeholder="Type your response..."
                       rows={4}
-                      className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-white placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
+                      className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-fg placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
                     />
                   </div>
                 </div>

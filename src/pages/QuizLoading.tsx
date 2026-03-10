@@ -78,7 +78,7 @@ export function QuizLoading() {
           {error ? (
             <>
               <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-              <h1 className="text-xl font-display text-white mb-2">Quiz Generation Failed</h1>
+              <h1 className="text-xl font-display text-fg mb-2">Quiz Generation Failed</h1>
               <p className="text-brand/50 mb-6">{error}</p>
               <button
                 onClick={() => navigate('/submit')}

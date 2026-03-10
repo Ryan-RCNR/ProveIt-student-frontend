@@ -41,7 +41,7 @@ export function Instructions() {
             <div className="flex items-start gap-4 p-4 bg-surface-light rounded-xl">
               <FileText className="w-6 h-6 text-brand flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-medium text-white mb-1">1. Submit Your Paper</h3>
+                <h3 className="font-medium text-fg mb-1">1. Submit Your Paper</h3>
                 <p className="text-sm text-brand/50">
                   Paste your paper text or upload your document (.docx, .pdf)
                 </p>
@@ -51,7 +51,7 @@ export function Instructions() {
             <div className="flex items-start gap-4 p-4 bg-surface-light rounded-xl">
               <Lock className="w-6 h-6 text-brand flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-medium text-white mb-1">2. Complete the Quiz</h3>
+                <h3 className="font-medium text-fg mb-1">2. Complete the Quiz</h3>
                 <p className="text-sm text-brand/50">
                   Answer {session.questionCount} questions about your paper in lockdown mode
                   ({session.timeLimitMinutes} minutes)
@@ -63,7 +63,7 @@ export function Instructions() {
               <div className="flex items-start gap-4 p-4 bg-surface-light rounded-xl">
                 <FileText className="w-6 h-6 text-brand flex-shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="font-medium text-white mb-1">3. Outline Responses</h3>
+                  <h3 className="font-medium text-fg mb-1">3. Outline Responses</h3>
                   <p className="text-sm text-brand/50">
                     Answer {session.outlineFields.length} reflection questions about your work
                   </p>

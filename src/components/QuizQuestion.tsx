@@ -24,7 +24,7 @@ export function QuizQuestion({
           <span className="text-xs text-brand/50 uppercase mb-2 block">
             {question.type === 'mc' ? 'Multiple Choice' : 'Short Answer'}
           </span>
-          <p className="text-white text-lg">{question.question}</p>
+          <p className="text-fg text-lg">{question.question}</p>
         </div>
         {answer && (
           <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
@@ -72,7 +72,7 @@ export function QuizQuestion({
             onChange={(e) => onAnswerChange(question.id, e.target.value)}
             placeholder="Type your answer..."
             rows={3}
-            className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-white placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
+            className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-fg placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
           />
         </div>
       )}

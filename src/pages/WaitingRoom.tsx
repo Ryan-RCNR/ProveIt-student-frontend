@@ -182,14 +182,14 @@ export function WaitingRoom() {
           {session.studentName && (
             <div className="p-4 bg-surface-light rounded-xl mb-4">
               <p className="text-sm text-brand/40 mb-1">Student</p>
-              <p className="text-white font-medium">{session.studentName}</p>
+              <p className="text-fg font-medium">{session.studentName}</p>
             </div>
           )}
 
           {session.assignmentName && (
             <div className="p-4 bg-surface-light rounded-xl mb-6">
               <p className="text-sm text-brand/40 mb-1">Assignment</p>
-              <p className="text-white font-medium">{session.assignmentName}</p>
+              <p className="text-fg font-medium">{session.assignmentName}</p>
             </div>
           )}
 
