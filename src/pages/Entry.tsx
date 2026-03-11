@@ -134,7 +134,7 @@ export function Entry() {
         </div>
 
         {/* Form */}
-        <div className="glass-card rounded-xl p-8">
+        <div className="rcnr-card-flat rounded-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <div className="p-4 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-sm">

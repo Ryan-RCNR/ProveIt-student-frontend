@@ -74,7 +74,7 @@ export function QuizLoading() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="glass-card rounded-xl p-8 text-center">
+        <div className="rcnr-card-flat rounded-xl p-8 text-center">
           {error ? (
             <>
               <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />

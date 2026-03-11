@@ -149,7 +149,7 @@ export function PaperSubmit() {
         )}
 
         {/* Content Area */}
-        <div className="glass-card rounded-xl p-6 mb-6">
+        <div className="rcnr-card-flat rounded-xl p-6 mb-6">
           {mode === 'paste' ? (
             <div>
               <label className="block text-sm font-medium text-brand/70 mb-2">
@@ -249,7 +249,7 @@ export function PaperSubmit() {
       {/* Confirmation Modal */}
       {showConfirm && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="glass-card rounded-xl p-8 max-w-md w-full text-center">
+          <div className="rcnr-card-flat rounded-xl p-8 max-w-md w-full text-center">
             <AlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
             <h2 className="text-xl font-display text-brand mb-3">Submit Your Paper?</h2>
             <p className="text-brand/60 text-sm mb-6">

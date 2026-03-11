@@ -216,7 +216,7 @@ export function LockdownQuiz() {
   if (isMobileDevice) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="glass-card rounded-xl p-8 max-w-md text-center">
+        <div className="rcnr-card-flat rounded-xl p-8 max-w-md text-center">
           <Monitor className="w-16 h-16 text-brand mx-auto mb-4" />
           <h1 className="text-2xl font-display text-brand mb-4">Computer Required</h1>
           <p className="text-brand/50 mb-2">
@@ -235,7 +235,7 @@ export function LockdownQuiz() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <div className="glass-card rounded-xl p-8 text-center">
+          <div className="rcnr-card-flat rounded-xl p-8 text-center">
             <Shield className="w-16 h-16 text-brand mx-auto mb-4" />
             <h1 className="text-2xl font-display text-brand mb-2">Ready for Lockdown?</h1>
             <p className="text-brand/50 mb-6">
@@ -302,7 +302,7 @@ export function LockdownQuiz() {
       {/* Lockdown violation overlay — 5s countdown to re-enter fullscreen */}
       {fullscreenCountdown !== null && !isFullscreen && (
         <div className="fixed inset-0 z-[100] bg-[var(--rcnr-bg)]/95 flex items-center justify-center p-4" role="alertdialog" aria-label="Fullscreen required">
-          <div className="glass-card rounded-xl p-8 max-w-md text-center">
+          <div className="rcnr-card-flat rounded-xl p-8 max-w-md text-center">
             <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
             <h2 className="text-2xl font-display text-brand mb-2">Lockdown Violation</h2>
             <p className="text-brand/50 mb-6">
@@ -337,7 +337,7 @@ export function LockdownQuiz() {
       {/* Forced submit overlay -- blocks all interaction while submitting */}
       {forcedSubmitting && (
         <div className="fixed inset-0 z-[100] bg-[var(--rcnr-bg)]/90 flex items-center justify-center p-4">
-          <div className="glass-card rounded-xl p-8 max-w-md text-center">
+          <div className="rcnr-card-flat rounded-xl p-8 max-w-md text-center">
             <Loader2 className="w-12 h-12 text-brand mx-auto mb-4 animate-spin" />
             <h2 className="text-xl font-display text-brand mb-2">Submitting Your Quiz</h2>
             <p className="text-brand/50">
@@ -350,7 +350,7 @@ export function LockdownQuiz() {
       {/* Submit Confirmation */}
       {showSubmitConfirm && (
         <div className="fixed inset-0 z-[90] bg-[var(--rcnr-bg)]/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-card rounded-xl p-8 max-w-md w-full text-center">
+          <div className="rcnr-card-flat rounded-xl p-8 max-w-md w-full text-center">
             <Check className="w-12 h-12 text-brand mx-auto mb-4" />
             <h2 className="text-xl font-display text-brand mb-2">Submit Your Quiz?</h2>
             <p className="text-brand/50 mb-2">
@@ -416,7 +416,7 @@ export function LockdownQuiz() {
               </div>
 
               {outlineFields.map((field, index) => (
-                <div key={index} className="glass-card rounded-xl p-6">
+                <div key={index} className="rcnr-card-flat rounded-xl p-6">
                   <div className="flex items-start gap-4 mb-4">
                     <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-brand/20 text-brand rounded-full font-semibold text-sm">
                       R{index + 1}

@@ -15,7 +15,7 @@ export function QuizQuestion({
   onAnswerChange,
 }: QuizQuestionProps) {
   return (
-    <div className="glass-card rounded-xl p-6">
+    <div className="rcnr-card-flat rounded-xl p-6">
       <div className="flex items-start gap-4 mb-4">
         <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-brand/20 text-brand rounded-full font-semibold text-sm">
           {index + 1}

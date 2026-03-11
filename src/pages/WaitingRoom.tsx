@@ -96,7 +96,7 @@ export function WaitingRoom() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md text-center">
-          <div className="glass-card rounded-xl p-8">
+          <div className="rcnr-card-flat rounded-xl p-8">
             <Lock className="w-16 h-16 text-brand/40 mx-auto mb-4" />
 
             <h1 className="text-2xl font-display text-brand mb-2">
@@ -128,7 +128,7 @@ export function WaitingRoom() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md text-center">
-          <div className="glass-card rounded-xl p-8">
+          <div className="rcnr-card-flat rounded-xl p-8">
             <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
 
             <h1 className="text-2xl font-display text-brand mb-2">
@@ -163,7 +163,7 @@ export function WaitingRoom() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md text-center">
-        <div className="glass-card rounded-xl p-8">
+        <div className="rcnr-card-flat rounded-xl p-8">
           <div className="relative mx-auto mb-6 w-20 h-20">
             <Clock className="w-20 h-20 text-brand/40" />
             <div className="absolute inset-0 animate-ping">

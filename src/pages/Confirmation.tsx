@@ -28,7 +28,7 @@ export function Confirmation() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md text-center">
-        <div className="glass-card rounded-xl p-8">
+        <div className="rcnr-card-flat rounded-xl p-8">
           {isLockedOut ? (
             <>
               <ShieldOff className="w-20 h-20 text-red-400 mx-auto mb-6" />

@@ -20,7 +20,7 @@ export function Instructions() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
-        <div className="glass-card rounded-xl p-8">
+        <div className="rcnr-card-flat rounded-xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-2xl font-display text-brand mb-2">{session.assignmentName}</h1>
