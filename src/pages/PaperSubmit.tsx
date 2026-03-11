@@ -161,7 +161,7 @@ export function PaperSubmit() {
                 placeholder="Paste your essay or paper here..."
                 rows={15}
                 maxLength={100000}
-                className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-fg placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
+                className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-fg placeholder-fg-dim focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
               />
               <div className="flex justify-between mt-2 text-sm">
                 <span className={paperText.length > 95000 ? 'text-amber-400' : 'text-brand/30'}>

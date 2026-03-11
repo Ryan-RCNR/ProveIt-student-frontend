@@ -301,7 +301,7 @@ export function LockdownQuiz() {
 
       {/* Lockdown violation overlay — 5s countdown to re-enter fullscreen */}
       {fullscreenCountdown !== null && !isFullscreen && (
-        <div className="fixed inset-0 z-[100] bg-midnight/95 flex items-center justify-center p-4" role="alertdialog" aria-label="Fullscreen required">
+        <div className="fixed inset-0 z-[100] bg-[var(--rcnr-bg)]/95 flex items-center justify-center p-4" role="alertdialog" aria-label="Fullscreen required">
           <div className="glass-card rounded-xl p-8 max-w-md text-center">
             <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
             <h2 className="text-2xl font-display text-brand mb-2">Lockdown Violation</h2>
@@ -336,7 +336,7 @@ export function LockdownQuiz() {
 
       {/* Forced submit overlay -- blocks all interaction while submitting */}
       {forcedSubmitting && (
-        <div className="fixed inset-0 z-[100] bg-midnight/90 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] bg-[var(--rcnr-bg)]/90 flex items-center justify-center p-4">
           <div className="glass-card rounded-xl p-8 max-w-md text-center">
             <Loader2 className="w-12 h-12 text-brand mx-auto mb-4 animate-spin" />
             <h2 className="text-xl font-display text-brand mb-2">Submitting Your Quiz</h2>
@@ -349,7 +349,7 @@ export function LockdownQuiz() {
 
       {/* Submit Confirmation */}
       {showSubmitConfirm && (
-        <div className="fixed inset-0 z-[90] bg-midnight/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[90] bg-[var(--rcnr-bg)]/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="glass-card rounded-xl p-8 max-w-md w-full text-center">
             <Check className="w-12 h-12 text-brand mx-auto mb-4" />
             <h2 className="text-xl font-display text-brand mb-2">Submit Your Quiz?</h2>
@@ -437,7 +437,7 @@ export function LockdownQuiz() {
                       }
                       placeholder="Type your response..."
                       rows={4}
-                      className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-fg placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
+                      className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-fg placeholder-fg-dim focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
                     />
                   </div>
                 </div>

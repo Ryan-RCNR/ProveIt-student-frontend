@@ -72,7 +72,7 @@ export function QuizQuestion({
             onChange={(e) => onAnswerChange(question.id, e.target.value)}
             placeholder="Type your answer..."
             rows={3}
-            className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-fg placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
+            className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-fg placeholder-fg-dim focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
           />
         </div>
       )}

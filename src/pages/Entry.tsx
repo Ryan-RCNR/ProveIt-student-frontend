@@ -151,7 +151,7 @@ export function Entry() {
                 value={studentName}
                 onChange={(e) => { setStudentName(e.target.value); setError(null) }}
                 placeholder="Enter your full name"
-                className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-fg placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors"
+                className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-fg placeholder-fg-dim focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors"
                 required
               />
             </div>
@@ -165,7 +165,7 @@ export function Entry() {
                 value={accessCode}
                 onChange={(e) => { setAccessCode(e.target.value.toUpperCase()); setError(null) }}
                 placeholder="e.g., ABCD-1234"
-                className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-fg placeholder-brand/30 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors font-mono text-lg tracking-wider text-center"
+                className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-fg placeholder-fg-dim focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors font-mono text-lg tracking-wider text-center"
                 required
               />
               <p className="mt-2 text-xs text-brand/30">
