@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@100..900&display=swap" rel="stylesheet">
     <title>ProveIt | RCNR</title>
-      <script>(function(){try{var t=localStorage.getItem("rcnr-theme");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t)}else if(window.matchMedia("(prefers-color-scheme:light)").matches){document.documentElement.setAttribute("data-theme","light")}}catch(e){}})()</script>
+      <script>(function(){try{var c=document.cookie.match(/(?:^|; )rcnr-theme=([^;]+)/);var t=c?c[1]:null;if(t!=="light"&&t!=="dark"){t=localStorage.getItem("rcnr-theme");if(t==="light"||t==="dark"){var d=location.hostname;var dm=d.endsWith(".rcnr.net")||d==="rcnr.net"?"; domain=.rcnr.net":"";document.cookie="rcnr-theme="+t+"; path=/; max-age=31536000; SameSite=Lax"+dm;localStorage.removeItem("rcnr-theme")}else{t=window.matchMedia("(prefers-color-scheme:light)").matches?"light":null}}if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t)}}catch(e){}})()</script>
   </head>
   <body>
     <div id="root"></div>
