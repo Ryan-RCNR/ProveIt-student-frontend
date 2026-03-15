@@ -13,7 +13,8 @@ function getIsExtended(): boolean | null {
 export function Instructions() {
   const navigate = useNavigate()
   const { session } = useSession()
-  const [multiMonitor, setMultiMonitor] = useState(() => getIsExtended() === true)
+  const requireSingleMonitor = !!session.requireSingleMonitor
+  const [multiMonitor, setMultiMonitor] = useState(() => requireSingleMonitor && getIsExtended() === true)
 
   useEffect(() => {
     if (!session.assignmentId) {
@@ -23,9 +24,10 @@ export function Instructions() {
 
   // Poll for monitor count changes every 2s
   useEffect(() => {
+    if (!requireSingleMonitor) return
     const interval = setInterval(() => setMultiMonitor(getIsExtended() === true), 2000)
     return () => clearInterval(interval)
-  }, [])
+  }, [requireSingleMonitor])
 
   if (!session.assignmentId) {
     return null
@@ -107,7 +109,7 @@ export function Instructions() {
           </div>
 
           {/* Multi-monitor blocker */}
-          {multiMonitor && (
+          {requireSingleMonitor && multiMonitor && (
             <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/8 p-4">
               <p className="text-sm font-medium text-red-400 mb-1">Second monitor detected</p>
               <p className="text-xs text-red-400/70 leading-relaxed">
@@ -123,7 +125,7 @@ export function Instructions() {
           {/* Start button */}
           <button
             onClick={() => navigate('/submit')}
-            disabled={multiMonitor}
+            disabled={requireSingleMonitor && multiMonitor}
             className="w-full px-6 py-4 btn-ice rounded-lg text-lg disabled:opacity-40 disabled:cursor-not-allowed"
           >
             I'm Ready - Start Assignment

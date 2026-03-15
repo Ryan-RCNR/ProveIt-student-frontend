@@ -92,6 +92,7 @@ export function Entry() {
         timeLimitMinutes: data.time_limit_minutes,
         questionCount: data.question_count,
         studentName: studentName.trim(),
+        requireSingleMonitor: !!data.require_single_monitor,
       })
 
       navigate('/instructions')

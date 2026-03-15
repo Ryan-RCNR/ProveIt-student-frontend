@@ -40,6 +40,7 @@ export interface SessionData {
   sessionToken?: string
   quizQuestions?: QuizQuestion[]
   startedAt?: string
+  requireSingleMonitor?: boolean
 }
 
 export function useSession() {
