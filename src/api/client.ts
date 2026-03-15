@@ -64,6 +64,7 @@ export interface VerifyCodeResponse {
   time_limit_minutes: number
   question_count: number
   require_entry_approval: boolean
+  require_single_monitor?: boolean
 }
 
 export interface EntryRequestResponse {
