@@ -1,17 +1,31 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Clock, FileText, Lock, AlertTriangle } from 'lucide-react'
 import { useSession } from '../hooks/useSessionStorage'
 
+function getIsExtended(): boolean | null {
+  if (typeof window !== 'undefined' && 'isExtended' in window.screen) {
+    return (window.screen as Screen & { isExtended: boolean }).isExtended
+  }
+  return null
+}
+
 export function Instructions() {
   const navigate = useNavigate()
   const { session } = useSession()
+  const [multiMonitor, setMultiMonitor] = useState(() => getIsExtended() === true)
 
   useEffect(() => {
     if (!session.assignmentId) {
       navigate('/')
     }
   }, [session, navigate])
+
+  // Poll for monitor count changes every 2s
+  useEffect(() => {
+    const interval = setInterval(() => setMultiMonitor(getIsExtended() === true), 2000)
+    return () => clearInterval(interval)
+  }, [])
 
   if (!session.assignmentId) {
     return null
@@ -92,10 +106,25 @@ export function Instructions() {
             <span>Time limit: {session.timeLimitMinutes} minutes</span>
           </div>
 
+          {/* Multi-monitor blocker */}
+          {multiMonitor && (
+            <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/8 p-4">
+              <p className="text-sm font-medium text-red-400 mb-1">Second monitor detected</p>
+              <p className="text-xs text-red-400/70 leading-relaxed">
+                Please disconnect your second monitor before beginning. This session requires a single screen.
+              </p>
+              <div className="mt-2 flex items-center gap-2 text-xs text-red-400/50">
+                <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                Checking every few seconds...
+              </div>
+            </div>
+          )}
+
           {/* Start button */}
           <button
             onClick={() => navigate('/submit')}
-            className="w-full px-6 py-4 btn-ice rounded-lg text-lg"
+            disabled={multiMonitor}
+            className="w-full px-6 py-4 btn-ice rounded-lg text-lg disabled:opacity-40 disabled:cursor-not-allowed"
           >
             I'm Ready - Start Assignment
           </button>
