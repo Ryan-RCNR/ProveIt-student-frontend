@@ -163,6 +163,11 @@ export function Entry() {
               </label>
               <input
                 type="text"
+                inputMode="text"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
                 value={accessCode}
                 onChange={(e) => { setAccessCode(e.target.value.toUpperCase()); setError(null) }}
                 placeholder="e.g., ABCD-1234"
