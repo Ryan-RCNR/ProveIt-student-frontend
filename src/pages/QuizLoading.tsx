@@ -35,12 +35,12 @@ export function QuizLoading() {
 
         if (data.quiz_status === 'ready' && data.quiz_questions) {
           // Quiz is ready -- store questions and navigate to lockdown quiz
-          setSession({
-            ...session,
+          setSession((prev) => ({
+            ...prev,
             quizQuestions: data.quiz_questions,
             startedAt: data.started_at,
             timeLimitMinutes: data.time_limit_minutes,
-          })
+          }))
           navigate('/quiz')
         } else if (data.quiz_status === 'failed') {
           setError('Quiz generation failed. Please go back and resubmit your paper.')

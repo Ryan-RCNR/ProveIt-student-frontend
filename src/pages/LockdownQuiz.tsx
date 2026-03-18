@@ -429,12 +429,13 @@ export function LockdownQuiz() {
                   <div className="ml-12">
                     <textarea
                       value={outlineResponses[field.label] || ''}
-                      onChange={(e) =>
-                        setOutlineResponses({
-                          ...outlineResponses,
-                          [field.label]: e.target.value,
-                        })
-                      }
+                      onChange={(e) => {
+                        const val = e.target.value
+                        setOutlineResponses((prev) => ({
+                          ...prev,
+                          [field.label]: val,
+                        }))
+                      }}
                       placeholder="Type your response..."
                       rows={4}
                       className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-fg placeholder-fg-dim focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
