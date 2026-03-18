@@ -191,8 +191,12 @@ export function Entry() {
           </form>
         </div>
 
-        <p className="text-center text-xs text-brand/30 mt-6">
-          RCNR Teacher Toolbox
+        <p className="text-center text-[11px] text-brand/30 mt-6 leading-relaxed">
+          By continuing, you agree that your writing will be reviewed by AI and shared with your teacher.
+          Your data is deleted after 30 days.{" "}
+          <a href="https://rcnr.net/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-brand/50">
+            Privacy Policy
+          </a>
         </p>
       </div>
     </div>
