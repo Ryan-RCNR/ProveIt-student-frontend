@@ -94,7 +94,8 @@ export function PaperSubmit() {
         if (status === 422) {
           setError('Your paper is too long to process. Please shorten it to under 100,000 characters and try again.')
         } else {
-          setError(err.response?.data?.detail || 'Failed to submit paper. Please try again.')
+          const detail = err.response?.data?.detail
+          setError(typeof detail === 'string' ? detail : 'Failed to submit paper. Please try again.')
         }
       } else {
         setError('An unexpected error occurred. Please try again.')
