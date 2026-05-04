@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, Check, Monitor, Maximize, Shield, Loader2 } from 'lucide-react'
 import axios from 'axios'
+import * as Sentry from '@sentry/react'
 import { submitQuiz, submitQuizForced, reportLockdownEvent, LockdownEvent, QuizQuestion as QuizQuestionType } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
 import { useLockdown, type Violation } from '@rcnr/lockdown'
@@ -141,6 +142,12 @@ export function LockdownQuiz() {
 
   // Report each violation to the backend in real-time (fire-and-forget)
   const handleViolation = useCallback((violation: Violation) => {
+    Sentry.addBreadcrumb({
+      category: 'lockdown',
+      message: violation.type,
+      data: violation.context,
+      level: violation.context?.strikesRemaining === 0 ? 'error' : 'warning',
+    })
     if (session.submissionId && session.sessionToken) {
       reportLockdownEvent(
         session.submissionId,
