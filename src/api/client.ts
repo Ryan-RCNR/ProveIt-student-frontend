@@ -228,6 +228,13 @@ export async function pollQuizReady(
   return response.data
 }
 
+export async function regenerateQuiz(
+  submissionId: string
+): Promise<QuizReadyResponse> {
+  const response = await api.post(`/submissions/${submissionId}/regenerate-quiz`)
+  return response.data
+}
+
 export async function reportLockdownEvent(
   submissionId: string,
   sessionToken: string,
