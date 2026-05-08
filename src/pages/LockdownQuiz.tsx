@@ -82,6 +82,10 @@ export function LockdownQuiz() {
     if (forced) {
       setForcedSubmitting(true)
       const status = lockdownForced ? 'locked_out' : 'completed'
+      // CRIT-3 (2026-05-08): track whether the server returned a hard
+      // 4xx so we can route to /submit-failed instead of silently
+      // landing on the green-checkmark page when work was actually lost.
+      let hardClientError = false
       try {
         // Race the submit against a 10s safety timeout.
         // The backend returns immediately (AI grading runs in background),
@@ -100,11 +104,25 @@ export function LockdownQuiz() {
           ),
           new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000)),
         ])
-      } catch {
-        // Even if the submit fails or times out, navigate away.
-        // The submission data (answers, status) is committed server-side
-        // before the response is sent, so reaching here likely means a
-        // network issue rather than data loss.
+      } catch (err) {
+        // Distinguish between hard server rejection (4xx — work was NOT
+        // saved, e.g. timer past grace, invalid token) and pure network
+        // issues (no err.response, or 5xx — server may still have
+        // committed before the response was lost).
+        if (axios.isAxiosError(err) && err.response) {
+          const s = err.response.status
+          if (s >= 400 && s < 500) {
+            hardClientError = true
+            sessionStorage.setItem('proveit_failed_at', new Date().toISOString())
+            sessionStorage.setItem('proveit_failed_status', String(s))
+          }
+        }
+      }
+      if (hardClientError) {
+        sessionStorage.setItem('proveit_submit_status', 'submit_failed')
+        sessionStorage.removeItem('proveit_autosave')
+        navigate('/complete')
+        return
       }
       navigateToComplete(status)
       return
