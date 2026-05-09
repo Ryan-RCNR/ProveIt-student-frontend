@@ -463,6 +463,7 @@ export function LockdownQuiz() {
                       }}
                       placeholder="Type your response..."
                       rows={4}
+                      maxLength={5000}
                       className="w-full px-4 py-3 rounded-xl bg-surface-light border border-brand/15 text-fg placeholder-fg-dim focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-colors resize-none"
                     />
                   </div>
