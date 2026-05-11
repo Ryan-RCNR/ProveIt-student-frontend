@@ -8,3 +8,12 @@ dist-ssr
 .DS_Store
 *.log
 tsconfig.tsbuildinfo
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+# Auth state — student tests use token-based auth (no Clerk), so no
+# state file. But reports may contain submission_ids and access codes.
+tests/e2e/reports/
