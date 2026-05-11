@@ -222,16 +222,29 @@ export async function pollEntryStatus(
 }
 
 export async function pollQuizReady(
-  submissionId: string
+  submissionId: string,
+  sessionToken: string
 ): Promise<QuizReadyResponse> {
-  const response = await api.get(`/submissions/${submissionId}/quiz-ready`)
+  // MED-1 (2026-05-10): backend now requires session_token query param.
+  // Without it any UUID holder could fetch the full quiz set.
+  const response = await api.get(`/submissions/${submissionId}/quiz-ready`, {
+    params: { session_token: sessionToken },
+  })
   return response.data
 }
 
 export async function regenerateQuiz(
-  submissionId: string
+  submissionId: string,
+  sessionToken: string
 ): Promise<QuizReadyResponse> {
-  const response = await api.post(`/submissions/${submissionId}/regenerate-quiz`)
+  // MED-1 / LOW-1 (2026-05-10): backend now requires session_token query
+  // param. Without it any UUID holder could force ~$0.01 Anthropic spend
+  // per regenerate.
+  const response = await api.post(
+    `/submissions/${submissionId}/regenerate-quiz`,
+    null,
+    { params: { session_token: sessionToken } }
+  )
   return response.data
 }
 

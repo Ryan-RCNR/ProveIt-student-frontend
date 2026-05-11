@@ -20,7 +20,7 @@ export function Entry() {
 
     if (session.submissionId && session.sessionToken) {
       // Student has already submitted a paper — check quiz status
-      pollQuizReady(session.submissionId)
+      pollQuizReady(session.submissionId, session.sessionToken)
         .then((res) => {
           if (res.quiz_status === 'ready') {
             navigate('/quiz')

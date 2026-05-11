@@ -23,7 +23,7 @@ export function QuizLoading() {
     const poll = async () => {
       if (!mountedRef.current) return
       try {
-        const data = await pollQuizReady(session.submissionId!)
+        const data = await pollQuizReady(session.submissionId!, session.sessionToken!)
         if (!mountedRef.current) return
 
         if (data.quiz_status === 'ready' && data.quiz_questions) {
@@ -62,7 +62,7 @@ export function QuizLoading() {
   }, [session.submissionId, setSession, navigate])
 
   const handleRetry = useCallback(async () => {
-    if (retrying || terminal || !session.submissionId) return
+    if (retrying || terminal || !session.submissionId || !session.sessionToken) return
     setRetrying(true)
     Sentry.addBreadcrumb({
       category: 'proveit',
@@ -71,7 +71,7 @@ export function QuizLoading() {
       level: 'info',
     })
     try {
-      await regenerateQuiz(session.submissionId)
+      await regenerateQuiz(session.submissionId, session.sessionToken)
       const nextCount = retryCount + 1
       setRetryCount(nextCount)
       setError(null)
