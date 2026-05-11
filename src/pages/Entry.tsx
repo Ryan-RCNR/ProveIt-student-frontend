@@ -97,12 +97,16 @@ export function Entry() {
 
       navigate('/instructions')
     } catch (err: any) {
-      if (err.response?.status === 404) {
-        setError('Invalid or expired access code. Please check with your teacher.')
-      } else if (err.response?.status === 403) {
-        setError(err.response.data?.detail || 'Your access has been locked. Please contact your teacher.')
-      } else if (err.response?.status === 400) {
-        setError(err.response.data?.detail || 'A submission already exists for this name.')
+      // HIGH-2 (2026-05-09): backend now returns a single generic 400 for all
+      // three negative branches (bad code, name-clash, locked-out non-forced)
+      // to defeat unauthenticated class-roster enumeration. Surface ONE
+      // message regardless of status so the client doesn't reveal which
+      // check failed. 429 (rate limit) keeps its own copy so a flooded
+      // student sees something actionable.
+      if (err.response?.status === 429) {
+        setError('Too many attempts. Please wait a minute and try again.')
+      } else if (err.response?.status >= 400 && err.response?.status < 500) {
+        setError(err.response.data?.detail || 'Cannot enter — please see your teacher.')
       } else {
         setError('Failed to verify code. Please try again.')
       }
