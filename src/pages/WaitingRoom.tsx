@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Clock, XCircle, ArrowLeft, Lock } from 'lucide-react'
+import { isAxiosError } from 'axios'
 import { pollEntryStatus } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
 
@@ -67,8 +68,8 @@ export function WaitingRoom() {
           sessionStorage.removeItem('proveit_entry_request_id')
           setDenied(true)
         }
-      } catch (err: any) {
-        if (err.response?.status === 410) {
+      } catch (err) {
+        if (isAxiosError(err) && err.response?.status === 410) {
           // Assignment was closed by teacher
           if (intervalRef.current) clearInterval(intervalRef.current)
           resolvedRef.current = true

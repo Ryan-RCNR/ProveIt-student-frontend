@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Loader2, AlertTriangle, RefreshCw } from 'lucide-react'
+import { isAxiosError } from 'axios'
 import * as Sentry from '@sentry/react'
 import { pollQuizReady, regenerateQuiz } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
@@ -43,8 +44,8 @@ export function QuizLoading() {
           }
         }
         // "generating" -- keep polling
-      } catch (err: any) {
-        if (err.response?.status === 410) {
+      } catch (err) {
+        if (isAxiosError(err) && err.response?.status === 410) {
           // Assignment was closed by teacher while quiz was generating
           setError('This assignment has been closed by your teacher.')
           setTerminal(true)
@@ -81,11 +82,12 @@ export function QuizLoading() {
         // After this attempt, no more button — caps abuse and signals teacher attention
         setTerminal(true)
       }
-    } catch (err: any) {
-      if (err.response?.status === 410) {
+    } catch (err) {
+      const status = isAxiosError(err) ? err.response?.status : undefined
+      if (status === 410) {
         setError('This assignment has been closed by your teacher.')
         setTerminal(true)
-      } else if (err.response?.status === 429) {
+      } else if (status === 429) {
         setError('Too many retries — please wait a minute and try again, or contact your teacher.')
       } else {
         setError('Could not retry — please contact your teacher.')

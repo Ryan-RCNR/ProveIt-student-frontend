@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileCheck, ArrowRight, Loader2 } from 'lucide-react'
+import { isAxiosError } from 'axios'
 import { verifyCode, requestEntry, pollQuizReady } from '../api/client'
 import { useSession } from '../hooks/useSessionStorage'
 
@@ -96,17 +97,18 @@ export function Entry() {
       })
 
       navigate('/instructions')
-    } catch (err: any) {
+    } catch (err) {
       // HIGH-2 (2026-05-09): backend now returns a single generic 400 for all
       // three negative branches (bad code, name-clash, locked-out non-forced)
       // to defeat unauthenticated class-roster enumeration. Surface ONE
       // message regardless of status so the client doesn't reveal which
       // check failed. 429 (rate limit) keeps its own copy so a flooded
       // student sees something actionable.
-      if (err.response?.status === 429) {
+      const resp = isAxiosError(err) ? err.response : undefined
+      if (resp?.status === 429) {
         setError('Too many attempts. Please wait a minute and try again.')
-      } else if (err.response?.status >= 400 && err.response?.status < 500) {
-        setError(err.response.data?.detail || 'Cannot enter — please see your teacher.')
+      } else if (resp && resp.status >= 400 && resp.status < 500) {
+        setError(resp.data?.detail || 'Cannot enter — please see your teacher.')
       } else {
         setError('Failed to verify code. Please try again.')
       }
