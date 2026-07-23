@@ -42,9 +42,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear invalid token and let the app handle re-authentication
+      // Fleet-standard student 401: clear the session and return to the join
+      // page. proveit_autosave is kept — in-progress quiz answers survive a
+      // rejoin (cleared only on submit, see LockdownQuiz).
       setStudentToken(null)
-      console.warn('Student session expired or invalid')
+      if (window.location.pathname !== '/') {
+        Object.keys(sessionStorage)
+          .filter((k) => k.startsWith('proveit_') && k !== 'proveit_autosave')
+          .forEach((k) => sessionStorage.removeItem(k))
+        window.location.href = '/'
+      }
     }
     return Promise.reject(error)
   }
