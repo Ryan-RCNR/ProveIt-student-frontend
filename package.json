@@ -13,6 +13,8 @@
     "e2e:report": "playwright show-report tests/e2e/reports"
   },
   "dependencies": {
+    "@fontsource/geist": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
     "@rcnr/lockdown": "^1.7.1",
     "@rcnr/theme": "^4.1.6",
     "@sentry/react": "^10.39.0",
