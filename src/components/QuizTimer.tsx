@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Clock } from 'lucide-react'
 
 const FIVE_MINUTES_IN_SECONDS = 300
@@ -20,9 +20,26 @@ export function QuizTimer({
 }: QuizTimerProps) {
   const [timeRemaining, setTimeRemaining] = useState<number>(0)
 
+  // Stable refs for callbacks so the interval survives parent re-renders
+  // (same pattern as useLockdown -- parents may pass inline functions).
+  const onTimeUpRef = useRef(onTimeUp)
+  useEffect(() => {
+    onTimeUpRef.current = onTimeUp
+  }, [onTimeUp])
+
+  const onWarningRef = useRef(onWarning)
+  useEffect(() => {
+    onWarningRef.current = onWarning
+  }, [onWarning])
+
+  // Guard against calling onTimeUp more than once.
+  const timeUpFiredRef = useRef(false)
+
   useEffect(() => {
     const startTime = new Date(startedAt).getTime()
     const endTime = startTime + timeLimitMinutes * 60 * 1000
+
+    let interval: ReturnType<typeof setInterval> | undefined
 
     const updateTimer = () => {
       const now = Date.now()
@@ -31,27 +48,35 @@ export function QuizTimer({
 
       // Warning at 5 minutes
       if (remaining === FIVE_MINUTES_IN_SECONDS) {
-        onWarning('5 minutes remaining!')
-        setTimeout(() => onWarning(''), WARNING_DISPLAY_DURATION_MS)
+        onWarningRef.current('5 minutes remaining!')
+        setTimeout(() => onWarningRef.current(''), WARNING_DISPLAY_DURATION_MS)
       }
 
       // Warning at 1 minute
       if (remaining === ONE_MINUTE_IN_SECONDS) {
-        onWarning('1 minute remaining!')
-        setTimeout(() => onWarning(''), WARNING_DISPLAY_DURATION_MS)
+        onWarningRef.current('1 minute remaining!')
+        setTimeout(() => onWarningRef.current(''), WARNING_DISPLAY_DURATION_MS)
       }
 
-      // Auto-submit when time runs out
+      // Auto-submit when time runs out -- fire exactly once, stop ticking
       if (remaining === 0) {
-        onTimeUp()
+        if (interval !== undefined) clearInterval(interval)
+        if (!timeUpFiredRef.current) {
+          timeUpFiredRef.current = true
+          onTimeUpRef.current()
+        }
       }
     }
 
     updateTimer()
-    const interval = setInterval(updateTimer, 1000)
+    if (!timeUpFiredRef.current) {
+      interval = setInterval(updateTimer, 1000)
+    }
 
-    return () => clearInterval(interval)
-  }, [startedAt, timeLimitMinutes, onTimeUp, onWarning])
+    return () => {
+      if (interval !== undefined) clearInterval(interval)
+    }
+  }, [startedAt, timeLimitMinutes])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
