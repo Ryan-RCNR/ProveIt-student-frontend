@@ -204,7 +204,7 @@ export function Entry() {
 
         <p className="text-center text-[11px] text-brand/30 mt-6 leading-relaxed">
           By continuing, you agree that your writing will be reviewed by AI and shared with your teacher.
-          Your data is deleted after 30 days.{" "}
+          Your work is deleted automatically 30 days after this assignment closes.{" "}
           <a href="https://rcnr.net/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-brand/50">
             Privacy Policy
           </a>
